@@ -1,26 +1,28 @@
-# Personal Knowledge Hub
-
 A MERN stack application for organizing and managing your personal knowledge base.
 
 ## Project Structure
 
-\`\`\`
+```
 knowledge-hub/
 ├── backend/                 # Express.js API
-│   ├── models/             # Mongoose models
-│   ├── routes/             # API routes
+│   ├── models/             # Mongoose schemas
+│   ├── routes/             # REST API endpoints
 │   ├── postman/            # Postman collection
-│   ├── server.js           # Entry point
+│   ├── server.js           # Server entry point
+│   ├── .env.example        # Environment variables template
 │   └── package.json
 │
 └── frontend/               # React application
     ├── src/
-    │   ├── components/     # React components
-    │   ├── context/        # React context providers
-    │   ├── pages/          # Page components
-    │   └── services/       # API service
+    │   ├── components/     # Reusable UI components
+    │   ├── context/        # State management providers
+    │   ├── pages/          # Page-level components
+    │   └── services/       # API client service
     ├── index.html
+    ├── tailwind.config.js  # Tailwind CSS configuration
     └── package.json
+```
+
 \`\`\`
 
 ## Getting Started
