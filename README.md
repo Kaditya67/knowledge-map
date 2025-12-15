@@ -23,8 +23,6 @@ knowledge-hub/
     └── package.json
 ```
 
-\`\`\`
-
 ## Getting Started
 
 ### Prerequisites
@@ -34,7 +32,8 @@ knowledge-hub/
 
 ### Backend Setup
 
-\`\`\`bash
+```bash
+
 cd knowledge-hub/backend
 npm install
 
@@ -43,26 +42,26 @@ cp .env.example .env
 
 # Start development server
 npm run dev
-\`\`\`
+```
 
 ### Frontend Setup
 
-\`\`\`bash
+```bash
 cd knowledge-hub/frontend
 npm install
 
 # Start development server
 npm run dev
-\`\`\`
+```
 
 ### Tailwind CSS Setup
 
 The project uses Tailwind CSS. To set it up:
 
-\`\`\`bash
+```bash
 cd knowledge-hub/frontend
 npx tailwindcss init -p
-\`\`\`
+```
 
 ## API Testing with Postman
 
