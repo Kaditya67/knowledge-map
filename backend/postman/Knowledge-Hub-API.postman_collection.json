@@ -1,0 +1,667 @@
+{
+  "info": {
+    "_postman_id": "knowledge-hub-api-collection",
+    "name": "Knowledge Hub API",
+    "description": "Complete API collection for Personal Knowledge Hub",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "pageId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "blockId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tagId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "assetId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pages",
+      "item": [
+        {
+          "name": "Get All Pages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pages",
+              "host": ["{{baseUrl}}"],
+              "path": ["pages"]
+            }
+          }
+        },
+        {
+          "name": "Get All Pages (Filter by Type)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pages?type=concept",
+              "host": ["{{baseUrl}}"],
+              "path": ["pages"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "concept"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get All Pages (Favorites Only)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pages?favorite=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["pages"],
+              "query": [
+                {
+                  "key": "favorite",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Single Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pages/{{pageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["pages", "{{pageId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Page",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["var jsonData = pm.response.json();", "pm.collectionVariables.set('pageId', jsonData._id);"],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Redis Fundamentals\",\n  \"type\": \"concept\",\n  \"summary\": \"In-memory data structure store used as database, cache, and message broker\",\n  \"icon\": \"🔴\",\n  \"tags\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pages",
+              "host": ["{{baseUrl}}"],
+              "path": ["pages"]
+            }
+          }
+        },
+        {
+          "name": "Update Page",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Redis Fundamentals - Updated\",\n  \"type\": \"concept\",\n  \"summary\": \"Updated summary for Redis\",\n  \"icon\": \"🔴\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pages/{{pageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["pages", "{{pageId}}"]
+            }
+          }
+        },
+        {
+          "name": "Toggle Favorite",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pages/{{pageId}}/favorite",
+              "host": ["{{baseUrl}}"],
+              "path": ["pages", "{{pageId}}", "favorite"]
+            }
+          }
+        },
+        {
+          "name": "Delete Page",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pages/{{pageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["pages", "{{pageId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Blocks",
+      "item": [
+        {
+          "name": "Get Blocks for Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/blocks/page/{{pageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["blocks", "page", "{{pageId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Single Block",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/blocks/{{blockId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["blocks", "{{blockId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Markdown Block",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["var jsonData = pm.response.json();", "pm.collectionVariables.set('blockId', jsonData._id);"],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pageId\": \"{{pageId}}\",\n  \"type\": \"markdown\",\n  \"content\": {\n    \"text\": \"# Introduction\\n\\nRedis is an open-source, in-memory data structure store.\\n\\n## Key Features\\n\\n- In-memory storage\\n- Data persistence\\n- Pub/Sub messaging\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/blocks",
+              "host": ["{{baseUrl}}"],
+              "path": ["blocks"]
+            }
+          }
+        },
+        {
+          "name": "Create Image Block",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pageId\": \"{{pageId}}\",\n  \"type\": \"image\",\n  \"content\": {\n    \"url\": \"https://example.com/redis-architecture.png\",\n    \"caption\": \"Redis Architecture Overview\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/blocks",
+              "host": ["{{baseUrl}}"],
+              "path": ["blocks"]
+            }
+          }
+        },
+        {
+          "name": "Create Gallery Block",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pageId\": \"{{pageId}}\",\n  \"type\": \"gallery\",\n  \"content\": {\n    \"images\": [\n      { \"url\": \"https://example.com/step1.png\", \"caption\": \"Step 1\" },\n      { \"url\": \"https://example.com/step2.png\", \"caption\": \"Step 2\" },\n      { \"url\": \"https://example.com/step3.png\", \"caption\": \"Step 3\" }\n    ]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/blocks",
+              "host": ["{{baseUrl}}"],
+              "path": ["blocks"]
+            }
+          }
+        },
+        {
+          "name": "Create Link Block",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pageId\": \"{{pageId}}\",\n  \"type\": \"link\",\n  \"content\": {\n    \"url\": \"https://redis.io/docs\",\n    \"label\": \"Official Redis Documentation\",\n    \"description\": \"Complete Redis documentation and guides\",\n    \"linkType\": \"documentation\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/blocks",
+              "host": ["{{baseUrl}}"],
+              "path": ["blocks"]
+            }
+          }
+        },
+        {
+          "name": "Create Diagram Block",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pageId\": \"{{pageId}}\",\n  \"type\": \"diagram\",\n  \"content\": {\n    \"url\": \"https://app.eraser.io/workspace/abc123\",\n    \"tool\": \"eraser\",\n    \"title\": \"Redis Data Flow Diagram\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/blocks",
+              "host": ["{{baseUrl}}"],
+              "path": ["blocks"]
+            }
+          }
+        },
+        {
+          "name": "Create Note Block",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pageId\": \"{{pageId}}\",\n  \"type\": \"note\",\n  \"content\": {\n    \"text\": \"Remember to configure maxmemory policy in production!\",\n    \"noteType\": \"warning\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/blocks",
+              "host": ["{{baseUrl}}"],
+              "path": ["blocks"]
+            }
+          }
+        },
+        {
+          "name": "Update Block",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"markdown\",\n  \"content\": {\n    \"text\": \"# Updated Content\\n\\nThis content has been updated.\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/blocks/{{blockId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["blocks", "{{blockId}}"]
+            }
+          }
+        },
+        {
+          "name": "Reorder Blocks",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pageId\": \"{{pageId}}\",\n  \"blockOrders\": [\n    { \"id\": \"block_id_1\", \"order\": 0 },\n    { \"id\": \"block_id_2\", \"order\": 1 },\n    { \"id\": \"block_id_3\", \"order\": 2 }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/blocks/reorder",
+              "host": ["{{baseUrl}}"],
+              "path": ["blocks", "reorder"]
+            }
+          }
+        },
+        {
+          "name": "Delete Block",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/blocks/{{blockId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["blocks", "{{blockId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tags",
+      "item": [
+        {
+          "name": "Get All Tags",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tags",
+              "host": ["{{baseUrl}}"],
+              "path": ["tags"]
+            }
+          }
+        },
+        {
+          "name": "Get Single Tag",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tags/{{tagId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tags", "{{tagId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Tag",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["var jsonData = pm.response.json();", "pm.collectionVariables.set('tagId', jsonData._id);"],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"database\",\n  \"color\": \"#ef4444\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tags",
+              "host": ["{{baseUrl}}"],
+              "path": ["tags"]
+            }
+          }
+        },
+        {
+          "name": "Update Tag",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"databases\",\n  \"color\": \"#f97316\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tags/{{tagId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tags", "{{tagId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Pages by Tag",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tags/{{tagId}}/pages",
+              "host": ["{{baseUrl}}"],
+              "path": ["tags", "{{tagId}}", "pages"]
+            }
+          }
+        },
+        {
+          "name": "Delete Tag",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tags/{{tagId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tags", "{{tagId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search",
+      "item": [
+        {
+          "name": "Global Search",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/search?q=redis",
+              "host": ["{{baseUrl}}"],
+              "path": ["search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "redis"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Quick Search (Autocomplete)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/search/quick?q=red",
+              "host": ["{{baseUrl}}"],
+              "path": ["search", "quick"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "red"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Assets",
+      "item": [
+        {
+          "name": "Get All Assets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/assets",
+              "host": ["{{baseUrl}}"],
+              "path": ["assets"]
+            }
+          }
+        },
+        {
+          "name": "Get Assets by Type",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/assets?type=github",
+              "host": ["{{baseUrl}}"],
+              "path": ["assets"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "github"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Single Asset",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/assets/{{assetId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["assets", "{{assetId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Asset",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["var jsonData = pm.response.json();", "pm.collectionVariables.set('assetId', jsonData._id);"],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"github\",\n  \"url\": \"https://github.com/redis/redis\",\n  \"title\": \"Redis Source Code\",\n  \"description\": \"Official Redis repository\",\n  \"pageId\": \"{{pageId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/assets",
+              "host": ["{{baseUrl}}"],
+              "path": ["assets"]
+            }
+          }
+        },
+        {
+          "name": "Update Asset",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"github\",\n  \"url\": \"https://github.com/redis/redis\",\n  \"title\": \"Redis Source Code - Updated\",\n  \"description\": \"Official Redis repository with updates\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/assets/{{assetId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["assets", "{{assetId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Asset",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/assets/{{assetId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["assets", "{{assetId}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
