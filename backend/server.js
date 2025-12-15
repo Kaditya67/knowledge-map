@@ -3,50 +3,100 @@ import cors from "cors"
 import mongoose from "mongoose"
 import dotenv from "dotenv"
 
-// Import routes
+// Routes
 import pageRoutes from "./routes/pages.js"
 import blockRoutes from "./routes/blocks.js"
 import tagRoutes from "./routes/tags.js"
 import searchRoutes from "./routes/search.js"
 import assetRoutes from "./routes/assets.js"
 
+/* ----------------------------------------
+   ENV SETUP (MUST BE FIRST)
+----------------------------------------- */
 dotenv.config()
 
-const app = express()
+/* ----------------------------------------
+   ENV VALIDATION (FAIL FAST)
+----------------------------------------- */
+const requiredEnv = ["MONGODB_URI"]
+requiredEnv.forEach((key) => {
+  if (!process.env[key]) {
+    console.error(`❌ Missing required env variable: ${key}`)
+    process.exit(1)
+  }
+})
+
 const PORT = process.env.PORT || 5000
+const NODE_ENV = process.env.NODE_ENV || "development"
+const CORS_ORIGIN = process.env.CORS_ORIGIN || "*"
 
-// Middleware
-app.use(cors())
-app.use(express.json())
+/* ----------------------------------------
+   APP INIT
+----------------------------------------- */
+const app = express()
 
-// MongoDB Connection
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://ojhaaditya913:riijl0qvQKEHOuNq@cluster0.kym3i.mongodb.net/knowledge-hub"
+/* ----------------------------------------
+   MIDDLEWARE
+----------------------------------------- */
+app.use(
+  cors({
+    origin: CORS_ORIGIN,
+    credentials: true,
+  })
+)
 
+app.use(express.json({ limit: "10mb" }))
+
+/* ----------------------------------------
+   DATABASE
+----------------------------------------- */
 mongoose
-  .connect(MONGODB_URI)
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => console.error("MongoDB connection error:", err))
+  .connect(process.env.MONGODB_URI)
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch((err) => {
+    console.error("❌ MongoDB connection failed", err)
+    process.exit(1)
+  })
 
-// Routes
+/* ----------------------------------------
+   ROUTES
+----------------------------------------- */
 app.use("/api/pages", pageRoutes)
 app.use("/api/blocks", blockRoutes)
 app.use("/api/tags", tagRoutes)
 app.use("/api/search", searchRoutes)
 app.use("/api/assets", assetRoutes)
 
-// Health check
+/* ----------------------------------------
+   HEALTH CHECK
+----------------------------------------- */
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", message: "Knowledge Hub API is running" })
+  res.status(200).json({
+    status: "ok",
+    env: NODE_ENV,
+    uptime: process.uptime(),
+  })
 })
 
-// Error handling middleware
+/* ----------------------------------------
+   GLOBAL ERROR HANDLER
+----------------------------------------- */
 app.use((err, req, res, next) => {
-  console.error(err.stack)
-  res.status(500).json({ error: "Something went wrong!" })
+  console.error("🔥 Error:", err)
+
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+  })
 })
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
+/* ----------------------------------------
+   SERVER START
+----------------------------------------- */
+if (NODE_ENV !== "test") {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT} [${NODE_ENV}]`)
+  })
+}
 
 export default app
