@@ -8,6 +8,7 @@ import { useApp } from "../context/AppContext"
 import Button from "../components/ui/Button"
 import Badge from "../components/ui/Badge"
 import BlockRenderer from "../components/blocks/BlockRenderer"
+import { useLocation } from "react-router-dom"
 
 function PageView() {
   const { id } = useParams()
@@ -16,6 +17,9 @@ function PageView() {
   const [page, setPage] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const location = useLocation()
+  const backTo = location.state?.backTo
+
 
   useEffect(() => {
     const fetchPage = async () => {
