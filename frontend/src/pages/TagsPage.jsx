@@ -126,7 +126,7 @@ function TagsPage() {
           </div>
         ) : (
           tags.map((tag) => (
-            <Card key={tag._id} className="p-4" hover>
+            <Card key={tag._id} className="p-4 group" hover>
               {editingId === tag._id ? (
                 <div className="flex flex-col sm:flex-row items-end gap-4">
                   <Input

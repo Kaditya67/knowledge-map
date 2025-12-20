@@ -175,6 +175,34 @@ function PageEditor() {
     )
   }
 
+  const buildDocumentJSON = () => {
+    return {
+      page,
+      blocks: [...blocks]
+        .sort((a, b) => a.order - b.order)
+        .map(({ _id, ...rest }) => rest),
+    }
+  }
+
+  const copyJSON = async () => {
+    const json = JSON.stringify(buildDocumentJSON(), null, 2)
+    await navigator.clipboard.writeText(json)
+    alert("Page JSON copied to clipboard")
+  }
+
+  const downloadJSON = () => {
+    const json = JSON.stringify(buildDocumentJSON(), null, 2)
+    const blob = new Blob([json], { type: "application/json" })
+
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `${page.title || "untitled-page"}.json`
+    a.click()
+
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="max-w-4xl mx-auto">
       {/* Header */}
@@ -187,10 +215,21 @@ function PageEditor() {
           Cancel
         </button>
 
+        <div className="flex items-center gap-2">
+        <Button variant="secondary" size="sm" onClick={copyJSON}>
+          Copy JSON
+        </Button>
+
+        <Button variant="secondary" size="sm" onClick={downloadJSON}>
+          Download JSON
+        </Button>
+
         <Button onClick={handleSave} disabled={saving || !page.title.trim()}>
           {saving ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Save className="w-4 h-4 mr-1.5" />}
           {saving ? "Saving..." : "Save"}
         </Button>
+      </div>
+
       </div>
 
       {/* Page Details */}

@@ -74,29 +74,48 @@ function PageView() {
     <div className="max-w-4xl mx-auto">
       {/* Navigation */}
       <div className="flex items-center justify-between mb-8">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors group"
-        >
-          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          Back
-        </button>
+        {backTo ? (
+          <button
+            onClick={() => navigate(backTo)}
+            className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors group"
+          >
+            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            Back to search
+          </button>
+        ) : (
+          <button
+            onClick={() => navigate("/")}
+            className="flex items-center gap-2 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors group"
+          >
+            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            Back
+          </button>
+        )}
 
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={handleFavorite}>
-            <Star className={`w-5 h-5 ${page.isFavorite ? "text-amber-500 fill-amber-500" : "text-slate-400"}`} />
+            <Star
+              className={`w-5 h-5 ${
+                page.isFavorite
+                  ? "text-amber-500 fill-amber-500"
+                  : "text-slate-400"
+              }`}
+            />
           </Button>
+
           <Link to={`/page/${id}/edit`}>
             <Button variant="secondary" size="sm">
               <Edit className="w-4 h-4 mr-1.5" />
               Edit
             </Button>
           </Link>
+
           <Button variant="ghost" size="sm" onClick={handleDelete}>
             <Trash2 className="w-4 h-4 text-red-500" />
           </Button>
         </div>
       </div>
+
 
       {/* Page Content */}
       <article className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">

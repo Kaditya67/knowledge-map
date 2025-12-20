@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
-import { Search, Sun, Moon, X, Command } from "lucide-react"
+import { Search, Sun, Moon, X, Command, Menu, X as CloseIcon } from "lucide-react"
 import { useTheme } from "../../context/ThemeContext"
 import api from "../../services/api"
 
-function Header() {
+function Header({ onMenuClick, isSidebarOpen }) {
   const { isDark, toggleTheme } = useTheme()
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState([])
@@ -59,8 +59,21 @@ function Header() {
   }
 
   return (
-    <header className="h-16 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 sticky top-0 z-40">
-      <div className="relative flex-1 max-w-2xl" ref={searchRef}>
+    <header className="h-16 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-40">
+      {/* Mobile menu button */}
+      <button
+        onClick={onMenuClick}
+        className="md:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+        aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
+      >
+        {isSidebarOpen ? (
+          <CloseIcon className="w-5 h-5" />
+        ) : (
+          <Menu className="w-5 h-5" />
+        )}
+      </button>
+
+      <div className="relative flex-1 max-w-2xl ml-2" ref={searchRef}>
         <form onSubmit={handleSearchSubmit}>
           <div className="relative group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
