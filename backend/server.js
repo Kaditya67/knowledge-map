@@ -27,8 +27,7 @@ requiredEnv.forEach((key) => {
 })
 
 const PORT = process.env.PORT || 5000
-const NODE_ENV = process.env.NODE_ENV || "development"
-const CORS_ORIGIN = process.env.CORS_ORIGIN || "https://knowledge-map.netlify.app" || "*"
+const NODE_ENV = process.env.NODE_ENV || "development" 
 
 /* ----------------------------------------
    APP INIT
@@ -38,12 +37,27 @@ const app = express()
 /* ----------------------------------------
    MIDDLEWARE
 ----------------------------------------- */
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map(origin => origin.trim())
+  : []
+
 app.use(
   cors({
-    origin: CORS_ORIGIN,
+    origin: (origin, callback) => { 
+      if (!origin) return callback(null, true)
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true)
+      }
+
+      return callback(
+        new Error(`CORS blocked: ${origin} not allowed`)
+      )
+    },
     credentials: true,
   })
 )
+
 
 app.use(express.json({ limit: "10mb" }))
 
@@ -100,3 +114,4 @@ if (NODE_ENV !== "test") {
 }
 
 export default app
+
