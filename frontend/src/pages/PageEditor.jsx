@@ -52,6 +52,22 @@ function PageEditor() {
     }
   }, [id, isNew])
 
+  const moveBlock = (from, to) => {
+  setBlocks((prev) => {
+    if (to < 0 || to >= prev.length) return prev
+
+    const updated = [...prev]
+    const [moved] = updated.splice(from, 1)
+    updated.splice(to, 0, moved)
+
+    // 🔑 keep order in sync
+    return updated.map((b, i) => ({
+      ...b,
+      order: i,
+    }))
+  })
+}
+
   const handleSave = async () => {
     try {
       setSaving(true)
@@ -332,9 +348,13 @@ function PageEditor() {
                 block={block}
                 onUpdate={(updated) => updateBlock(index, updated)}
                 onDelete={() => deleteBlock(index)}
-                dragHandleProps={{}}
+                onMoveUp={index > 0 ? () => moveBlock(index, index - 1) : null}
+                onMoveDown={
+                  index < blocks.length - 1 ? () => moveBlock(index, index + 1) : null
+                }
               />
             ))}
+
           </div>
         )}
       </div>
