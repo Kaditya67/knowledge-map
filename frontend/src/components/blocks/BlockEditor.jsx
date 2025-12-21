@@ -283,7 +283,7 @@ function BlockPreview({ block }) {
       )
     case "link":
       return (
-        <span className="text-sm text-indigo-600 dark:text-indigo-400">{block.content.label || "Untitled link"}</span>
+        <span className="text-sm text-indigo-600 dark:text-indigo-400">{block.content.label || "Untitled link"} {block.content.description || "NEW" }</span>
       )
     case "diagram":
       return (
