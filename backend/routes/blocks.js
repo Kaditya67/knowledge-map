@@ -1,6 +1,7 @@
 import express from "express"
 import Block from "../models/Block.js"
 import Page from "../models/Page.js"
+import { protect } from "../middleware/auth.js"
 
 const router = express.Router()
 
@@ -28,7 +29,7 @@ router.get("/:id", async (req, res) => {
 })
 
 // Create block
-router.post("/", async (req, res) => {
+router.post("/", protect, async (req, res) => {
   try {
     const { pageId, type, content, order } = req.body
 
@@ -55,7 +56,7 @@ router.post("/", async (req, res) => {
 })
 
 // Update block
-router.put("/:id", async (req, res) => {
+router.put("/:id", protect, async (req, res) => {
   try {
     const { type, content, order } = req.body
 
@@ -72,7 +73,7 @@ router.put("/:id", async (req, res) => {
 })
 
 // Delete block
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", protect, async (req, res) => {
   try {
     const block = await Block.findByIdAndDelete(req.params.id)
 
@@ -88,7 +89,7 @@ router.delete("/:id", async (req, res) => {
 })
 
 // Reorder blocks
-router.patch("/reorder", async (req, res) => {
+router.patch("/reorder", protect, async (req, res) => {
   try {
     const { pageId, blockOrders } = req.body
 

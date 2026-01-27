@@ -1,6 +1,7 @@
 import express from "express"
 import Page from "../models/Page.js"
 import Block from "../models/Block.js"
+import { protect } from "../middleware/auth.js"
 
 const router = express.Router()
 
@@ -41,7 +42,7 @@ router.get("/:id", async (req, res) => {
 })
 
 // Create page
-router.post("/", async (req, res) => {
+router.post("/", protect, async (req, res) => {
   try {
     const { title, type, summary, tags, icon } = req.body
 
@@ -62,7 +63,7 @@ router.post("/", async (req, res) => {
 })
 
 // Update page
-router.put("/:id", async (req, res) => {
+router.put("/:id", protect, async (req, res) => {
   try {
     const { title, type, summary, tags, icon, isFavorite, relatedPages } = req.body
 
@@ -83,7 +84,7 @@ router.put("/:id", async (req, res) => {
 })
 
 // Delete page
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", protect, async (req, res) => {
   try {
     const page = await Page.findByIdAndDelete(req.params.id)
 
@@ -99,7 +100,7 @@ router.delete("/:id", async (req, res) => {
 })
 
 // Toggle favorite
-router.patch("/:id/favorite", async (req, res) => {
+router.patch("/:id/favorite", protect, async (req, res) => {
   try {
     const page = await Page.findById(req.params.id)
 

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useLocation } from "react-router-dom"
 import { useApp } from "../context/AppContext"
 import PageCard from "../components/page/PageCard"
 import Select from "../components/ui/Select"
@@ -19,6 +20,19 @@ function HomePage() {
     const savedView = localStorage.getItem("viewMode")
     if (savedView) setViewMode(savedView)
   }, [])
+  
+  const location = useLocation()
+  useEffect(() => {
+    if (location.state?.welcome) {
+      // Could use a toast here, for now using a simple alert or console log
+      // But typically we'd set a temporary welcome banner
+      setShowWelcomeBanner(true)
+      // Clear state so it doesn't persist on refresh (SPA refresh might keep it, but location state usually clears on new nav)
+      window.history.replaceState({}, document.title)
+    }
+  }, [location])
+
+  const [showWelcomeBanner, setShowWelcomeBanner] = useState(false)
 
   useEffect(() => {
     localStorage.setItem("viewMode", viewMode)
@@ -129,6 +143,30 @@ function HomePage() {
       </div>
 
       {/* ---------------- Content ---------------- */}
+      {showWelcomeBanner && (
+        <div className="mb-8 p-4 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-xl flex items-center justify-between animate-fade-in">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-slate-900 dark:text-white">Welcome back!</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Ready to organize your knowledge?</p>
+            </div>
+          </div>
+          <button 
+            onClick={() => setShowWelcomeBanner(false)}
+            className="p-2 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 rounded-lg text-slate-500 dark:text-slate-400 transition-colors"
+          >
+            <span className="sr-only">Dismiss</span>
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+      )}
+
       {pages.length === 0 ? (
         <div className="text-center py-16">
           <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/20 dark:to-purple-900/20 flex items-center justify-center">

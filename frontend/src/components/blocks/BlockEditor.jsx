@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import {
   Trash2,
   GripVertical,
@@ -9,6 +9,8 @@ import {
   ArrowUp,
   ArrowDown,
 } from "lucide-react"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 
 import Button from "../ui/Button"
 import Input from "../ui/Input"
@@ -256,7 +258,7 @@ function BlockEditor({
 
       {!isCollapsed && (
         <div className="p-4">
-          {isEditing ? renderEditor() : <BlockPreview block={block} />}
+          {isEditing ? renderEditor() : <BlockPreview block={block} onUpdate={onUpdate} />}
         </div>
       )}
     </div>
@@ -265,13 +267,76 @@ function BlockEditor({
 
 /* ---------------- Preview ---------------- */
 
-function BlockPreview({ block }) {
+/* ---------------- Preview ---------------- */
+
+function BlockPreview({ block, onUpdate }) {
+  // Ref to track checkbox index during render
+  const checkboxCounter = useRef(0)
+
+  const handleCheckboxToggle = (index) => {
+    if (!onUpdate || !block.content.text) return
+
+    const text = block.content.text
+    const lines = text.split("\n")
+    let currentCheckboxIndex = 0
+
+    const newLines = lines.map((line) => {
+      // Regex to find list items with checkboxes: - [ ] or - [x]
+      const checkboxRegex = /^(\s*[-*]\s+\[)([ x])(\]\s.*)/
+      const match = line.match(checkboxRegex)
+
+      if (match) {
+        if (currentCheckboxIndex === index) {
+          const isChecked = match[2] === "x"
+          const newStatus = isChecked ? " " : "x"
+          return `${match[1]}${newStatus}${match[3]}`
+        }
+        currentCheckboxIndex++
+      }
+      return line
+    })
+
+    onUpdate({
+      ...block,
+      content: { ...block.content, text: newLines.join("\n") },
+    })
+  }
+
+  // Reset counter before render
+  checkboxCounter.current = 0
+
   switch (block.type) {
     case "markdown":
       return (
-        <pre className="text-sm whitespace-pre-wrap text-slate-600 dark:text-slate-400">
-          {block.content.text || "Empty markdown block"}
-        </pre>
+        <div className="prose dark:prose-invert max-w-none prose-sm">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              input: (props) => {
+                if (props.type === "checkbox") {
+                  const index = checkboxCounter.current++
+                  return (
+                    <input
+                      type="checkbox"
+                      checked={props.checked}
+                      onChange={() => handleCheckboxToggle(index)}
+                      className="mt-1 w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500 cursor-pointer"
+                    />
+                  )
+                }
+                return <input {...props} />
+              },
+              // Fix list styling
+              li: ({ children, ...props }) => {
+                 // Check if it's a task list item to remove bullets if needed, but Tailwind prose handles this mostly.
+                 // We keep it simple.
+                 return <li {...props}>{children}</li>
+              }
+            }}
+          >
+            {block.content.text || "Empty markdown block"}
+          </ReactMarkdown>
+        </div>
       )
     case "image":
       return (

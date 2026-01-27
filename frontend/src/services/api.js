@@ -9,7 +9,71 @@ const client = axios.create({
   },
 })
 
+// Add auth token to requests
+client.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token")
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
 const api = {
+  // Auth
+  register: async (userData) => {
+    const { data } = await client.post("/auth/register", userData)
+    return data
+  },
+
+  // Media
+  getMedia: async (filters = {}) => {
+    const params = new URLSearchParams()
+    if (filters.type && filters.type !== "all") params.append("type", filters.type)
+    if (filters.status && filters.status !== "all") params.append("status", filters.status)
+    if (filters.sort) params.append("sort", filters.sort)
+    const response = await client.get(`/media?${params}`)
+    return response.data
+  },
+  createMedia: async (data) => {
+    const response = await client.post("/media", data)
+    return response.data
+  },
+  updateMedia: async (id, data) => {
+    const response = await client.put(`/media/${id}`, data)
+    return response.data
+  },
+  deleteMedia: async (id) => {
+    const response = await client.delete(`/media/${id}`)
+    return response.data
+  },
+  batchUpdateMedia: async (items) => {
+    const response = await client.put("/media/batch", { 
+      ids: items.map(i => i._id), 
+      items: items 
+    })
+    return response.data
+  },
+
+  // Media Config
+  getMediaConfig: async () => {
+    const response = await client.get("/media-config")
+    return response.data
+  },
+  updateMediaConfig: async (data) => {
+    const response = await client.put("/media-config", data)
+    return response.data
+  },
+
+  login: async (userData) => {
+    const { data } = await client.post("/auth/login", userData)
+    return data
+  },
+
+  getMe: async () => {
+    const { data } = await client.get("/auth/me")
+    return data
+  },
+
   // Pages
   getPages: async (filters = {}) => {
     const params = new URLSearchParams()

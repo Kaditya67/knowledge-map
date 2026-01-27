@@ -8,16 +8,22 @@ import {
   Folder,
   ChevronRight,
   ChevronLeft,
+  LogOut,
+  LogIn,
+  Film,
 } from "lucide-react"
 import { useApp } from "../../context/AppContext"
+import { useAuth } from "../../context/AuthContext"
 
 function Sidebar({ isCollapsed, onToggle, onClose }) {
   const { pages, tags } = useApp()
+  const { user, logout } = useAuth()
   const favoritePages = pages.filter((page) => page.isFavorite)
 
   const navItems = [
     { to: "/", icon: Home, label: "Home" },
     { to: "/tags", icon: Tag, label: "Tags" },
+    { to: "/media", icon: Film, label: "Media" },
   ]
 
   return (
@@ -103,14 +109,36 @@ function Sidebar({ isCollapsed, onToggle, onClose }) {
       </nav>
 
       {/* Create */}
-      <div className="p-4 border-t border-slate-200 dark:border-slate-800">
-        <NavLink
-          to="/new"
-          className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-medium"
-        >
-          <Plus className="w-5 h-5" />
-          {!isCollapsed && "New Page"}
-        </NavLink>
+      <div className="p-4 border-t border-slate-200 dark:border-slate-800 space-y-2">
+        {user && (
+          <NavLink
+            to="/new"
+            className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-medium"
+          >
+            <Plus className="w-5 h-5" />
+            {!isCollapsed && "New Page"}
+          </NavLink>
+        )}
+        
+        {user ? (
+          <button
+            onClick={logout}
+            className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 rounded-xl font-medium transition-colors"
+          >
+            <LogOut className="w-5 h-5" />
+            {!isCollapsed && "Logout"}
+          </button>
+        ) : (
+          <div className="space-y-2">
+            <NavLink
+              to="/login"
+              className="flex items-center justify-center gap-2 w-full px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-slate-50 dark:hover:bg-slate-800"
+            >
+              <LogIn className="w-5 h-5" />
+              {!isCollapsed && "Login"}
+            </NavLink>
+          </div>
+        )}
       </div>
 
       {/* Desktop Toggle */}

@@ -9,16 +9,20 @@ import blockRoutes from "./routes/blocks.js"
 import tagRoutes from "./routes/tags.js"
 import searchRoutes from "./routes/search.js"
 import assetRoutes from "./routes/assets.js"
+import mediaRoutes from "./routes/media.js"
+import mediaConfigRoutes from "./routes/mediaConfig.js"
+import authRoutes from "./routes/auth.js"
 
 /* ----------------------------------------
    ENV SETUP (MUST BE FIRST)
 ----------------------------------------- */
 dotenv.config()
+// trigger restart
 
 /* ----------------------------------------
    ENV VALIDATION (FAIL FAST)
 ----------------------------------------- */
-const requiredEnv = ["MONGODB_URI"]
+const requiredEnv = ["MONGODB_URI", "JWT_SECRET"]
 requiredEnv.forEach((key) => {
   if (!process.env[key]) {
     console.error(`❌ Missing required env variable: ${key}`)
@@ -80,6 +84,9 @@ app.use("/api/blocks", blockRoutes)
 app.use("/api/tags", tagRoutes)
 app.use("/api/search", searchRoutes)
 app.use("/api/assets", assetRoutes)
+app.use("/api/media", mediaRoutes)
+app.use("/api/media-config", mediaConfigRoutes)
+app.use("/api/auth", authRoutes)
 
 /* ----------------------------------------
    HEALTH CHECK

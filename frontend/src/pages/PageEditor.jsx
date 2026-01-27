@@ -5,6 +5,7 @@ import { useParams, useNavigate } from "react-router-dom"
 import { ArrowLeft, Plus, Save, Loader2 } from "lucide-react"
 import api from "../services/api"
 import { useApp } from "../context/AppContext"
+import { useAuth } from "../context/AuthContext"
 import Button from "../components/ui/Button"
 import Input from "../components/ui/Input"
 import Select from "../components/ui/Select"
@@ -15,7 +16,14 @@ function PageEditor() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { createPage, updatePage, tags } = useApp()
+  const { user, loading: authLoading } = useAuth()
   const isNew = !id
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate("/login")
+    }
+  }, [user, authLoading, navigate])
 
   const [page, setPage] = useState({
     title: "",
@@ -206,16 +214,50 @@ function PageEditor() {
     alert("Page JSON copied to clipboard")
   }
 
-  const downloadJSON = () => {
-    const json = JSON.stringify(buildDocumentJSON(), null, 2)
-    const blob = new Blob([json], { type: "application/json" })
+  /* ---------------- Download Markdown ---------------- */
+  const downloadMarkdown = () => {
+    let md = `# ${page.title}\n\n`
+    if (page.summary) md += `> ${page.summary}\n\n`
+    if (page.tags && page.tags.length > 0) {
+      // Tags might be objects or strings depending on where they come from
+      // If direct from state they are likely just IDs, but if fetched they are objects
+      // We'll simplisticly handle it or just skip for now to keep it safe
+      // md += `Tags: ${page.tags.map(t => typeof t === 'object' ? t.name : t).join(", ")}\n\n`
+    }
 
+    blocks.forEach((block) => {
+      switch (block.type) {
+        case "markdown":
+          md += `${block.content.text}\n\n`
+          break
+        case "image":
+          md += `![${block.content.caption || "Image"}](${block.content.url})\n`
+          if (block.content.caption) md += `*${block.content.caption}*\n`
+          md += "\n"
+          break
+        case "link":
+          md += `[${block.content.label}](${block.content.url}) - ${block.content.description}\n\n`
+          break
+        case "note":
+          md += `> **${block.content.noteType.toUpperCase()}**: ${block.content.text}\n\n`
+          break
+        case "gallery":
+          block.content.images.forEach((img) => {
+            md += `![${img.caption || "Gallery Image"}](${img.url})\n`
+          })
+          md += "\n"
+          break
+        default:
+          md += `[Unsupported Block Type: ${block.type}]\n\n`
+      }
+    })
+
+    const blob = new Blob([md], { type: "text/markdown" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `${page.title || "untitled-page"}.json`
+    a.download = `${page.title || "untitled"}.md`
     a.click()
-
     URL.revokeObjectURL(url)
   }
 
@@ -236,8 +278,8 @@ function PageEditor() {
           Copy JSON
         </Button>
 
-        <Button variant="secondary" size="sm" onClick={downloadJSON}>
-          Download JSON
+        <Button variant="secondary" size="sm" onClick={downloadMarkdown}>
+          Download Markdown
         </Button>
 
         <Button onClick={handleSave} disabled={saving || !page.title.trim()}>
@@ -328,10 +370,12 @@ function PageEditor() {
       <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Content Blocks</h2>
-          <Button variant="secondary" size="sm" onClick={() => setShowBlockModal(true)}>
-            <Plus className="w-4 h-4 mr-1.5" />
-            Add Block
-          </Button>
+          {user && (
+            <Button variant="secondary" size="sm" onClick={() => setShowBlockModal(true)}>
+              <Plus className="w-4 h-4 mr-1.5" />
+              Add Block
+            </Button>
+          )}
         </div>
 
         {blocks.length === 0 ? (

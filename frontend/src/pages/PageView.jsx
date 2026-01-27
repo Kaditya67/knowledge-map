@@ -5,6 +5,7 @@ import { useParams, useNavigate, Link } from "react-router-dom"
 import { ArrowLeft, Edit, Star, Trash2, Calendar, Clock } from "lucide-react"
 import api from "../services/api"
 import { useApp } from "../context/AppContext"
+import { useAuth } from "../context/AuthContext"
 import Button from "../components/ui/Button"
 import Badge from "../components/ui/Badge"
 import BlockRenderer from "../components/blocks/BlockRenderer"
@@ -14,6 +15,7 @@ function PageView() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { toggleFavorite, deletePage } = useApp()
+  const { user } = useAuth()
   const [page, setPage] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -97,26 +99,32 @@ function PageView() {
         )}
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={handleFavorite}>
-            <Star
-              className={`w-5 h-5 ${
-                page.isFavorite
-                  ? "text-amber-500 fill-amber-500"
-                  : "text-slate-400"
-              }`}
-            />
-          </Button>
-
-          <Link to={`/page/${id}/edit`}>
-            <Button variant="secondary" size="sm">
-              <Edit className="w-4 h-4 mr-1.5" />
-              Edit
+          {user && (
+            <Button variant="ghost" size="sm" onClick={handleFavorite}>
+              <Star
+                className={`w-5 h-5 ${
+                  page.isFavorite
+                    ? "text-amber-500 fill-amber-500"
+                    : "text-slate-400"
+                }`}
+              />
             </Button>
-          </Link>
+          )}
 
-          <Button variant="ghost" size="sm" onClick={handleDelete}>
-            <Trash2 className="w-4 h-4 text-red-500" />
-          </Button>
+          {user && (
+            <>
+              <Link to={`/page/${id}/edit`}>
+                <Button variant="secondary" size="sm">
+                  <Edit className="w-4 h-4 mr-1.5" />
+                  Edit
+                </Button>
+              </Link>
+
+              <Button variant="ghost" size="sm" onClick={handleDelete}>
+                <Trash2 className="w-4 h-4 text-red-500" />
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
