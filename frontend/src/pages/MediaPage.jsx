@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Plus, Film, Book, MonitorPlay, ExternalLink, Edit, Trash2, Play, Settings, LayoutGrid, List, BarChart3, FileText, ChevronDown } from "lucide-react"
+import { Plus, Film, Book, MonitorPlay, ExternalLink, Edit, Trash2, Play, Settings, LayoutGrid, List, BarChart3, FileText, ChevronDown, AlertTriangle, X } from "lucide-react"
 import api from "../services/api"
 import { useAuth } from "../context/AuthContext"
 import Button from "../components/ui/Button"
@@ -10,6 +10,7 @@ import MediaCard from "../components/media/MediaCard"
 import MediaFilters from "../components/media/MediaFilters"
 import MediaStats from "../components/media/MediaStats"
 import SmartEditDialog from "../components/media/SmartEditDialog"
+import ConfirmDialog from "../components/ui/ConfirmDialog"
 
 export default function MediaPage() {
   const { user } = useAuth()
@@ -29,6 +30,17 @@ export default function MediaPage() {
   const [editingItem, setEditingItem] = useState(null)
   
   const [filters, setFilters] = useState({})
+  
+  // Confirm dialog state
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null
+  })
+  
+  // Error message state
+  const [errorMessage, setErrorMessage] = useState(null)
 
   // Extract all unique genres and tags from media
   const allGenres = [...new Set(media.flatMap(m => m.genres || []))].sort()
@@ -56,18 +68,16 @@ export default function MediaPage() {
 
   const fetchStats = async () => {
     try {
-      const statsData = await api.get("/media/stats", { params: { type: activeSection } })
-      setStats(statsData.data)
+      const statsData = await api.getMediaStats(activeSection)
+      setStats(statsData)
     } catch (error) {
       console.error("Failed to fetch stats", error)
     }
   }
 
   useEffect(() => {
-    if (user) {
-      fetchData()
-    }
-  }, [sort, user])
+    fetchData()
+  }, [sort])
 
   useEffect(() => {
     if (viewMode === "stats" && activeSection) {
@@ -140,6 +150,37 @@ export default function MediaPage() {
     await handleConfigUpdate(newConfig)
     setShowSectionDialog(false)
     setActiveSection(sectionData.name)
+  }
+
+  const handleDeleteSection = (typeName) => {
+    if (!config) return
+    
+    const itemCount = media.filter(m => m.type === typeName).length
+    
+    // Prevent deletion if section has items
+    if (itemCount > 0) {
+      setErrorMessage(`Cannot delete "${typeName}" section because it contains ${itemCount} item(s). Please delete or move all items first.`)
+      setTimeout(() => setErrorMessage(null), 5000) // Clear after 5 seconds
+      return
+    }
+    
+    // Show confirmation dialog for empty sections
+    setConfirmDialog({
+      isOpen: true,
+      title: "Delete Section",
+      message: `Are you sure you want to delete the "${typeName}" section? This action cannot be undone.`,
+      onConfirm: async () => {
+        const newConfig = { ...config }
+        newConfig.customTypes = newConfig.customTypes.filter(t => t.name !== typeName)
+        
+        await handleConfigUpdate(newConfig)
+        
+        // If we deleted the active section, switch to the first available one
+        if (activeSection === typeName && newConfig.customTypes.length > 0) {
+          setActiveSection(newConfig.customTypes[0].name)
+        }
+      }
+    })
   }
 
   const handleSave = async (data) => {
@@ -327,7 +368,12 @@ export default function MediaPage() {
                 </div>
 
                 <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-700 gap-2">
-                  <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                    onClick={() => handleDeleteSection(type.name)}
+                  >
                     <Trash2 className="w-4 h-4 mr-2" />
                     Delete
                   </Button>
@@ -495,6 +541,36 @@ export default function MediaPage() {
         items={filteredMedia}
         config={config}
       />
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type="danger"
+      />
+
+      {/* Error Message Toast */}
+      {errorMessage && (
+        <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
+          <div className="bg-red-500 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 max-w-md">
+            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold mb-1">Cannot Delete Section</p>
+              <p className="text-sm opacity-90">{errorMessage}</p>
+            </div>
+            <button 
+              onClick={() => setErrorMessage(null)}
+              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

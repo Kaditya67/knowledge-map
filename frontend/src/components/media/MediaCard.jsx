@@ -1,7 +1,9 @@
 import { Star, Edit, Trash2, ExternalLink, Play, CheckCircle } from "lucide-react"
 import Badge from "../ui/Badge"
+import { useAuth } from "../../context/AuthContext"
 
 export default function MediaCard({ item, config, onEdit, onDelete, onIncrement, onToggleFavorite, viewMode = "grid" }) {
+  const { user } = useAuth()
   const progressPercent = item.total > 0 ? Math.min((item.current / item.total) * 100, 100) : 0
   const typeConfig = config?.customTypes?.find(t => t.name === item.type) || { unit: "Ep" }
   const statusObj = config?.customStatuses?.find(s => s.value === item.status)
@@ -45,56 +47,55 @@ export default function MediaCard({ item, config, onEdit, onDelete, onIncrement,
           </div>
         </div>
         
-        {/* Actions */}
-        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          {item.link && (
-            <a href={item.link} target="_blank" rel="noopener noreferrer" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500">
-              <ExternalLink className="w-4 h-4" />
-            </a>
-          )}
-          <button onClick={() => onToggleFavorite(item)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500">
-            <Star className={`w-4 h-4 ${item.favorite ? 'fill-amber-500 text-amber-500' : ''}`} />
-          </button>
-          <button onClick={() => onEdit(item)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500">
-            <Edit className="w-4 h-4" />
-          </button>
-          <button onClick={() => onDelete(item._id)} className="p-2 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg text-red-500">
-            <Trash2 className="w-4 h-4" />
-          </button>
-          {item.status !== "completed" && (
-            <button 
-              onClick={() => onIncrement(item)}
-              className="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
-            >
-              +1 {typeConfig.unit}
+        {/* Actions - Only show when authenticated */}
+        {user && (
+          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            {item.link && (
+              <a href={item.link} target="_blank" rel="noopener noreferrer" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500">
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            )}
+            <button onClick={() => onToggleFavorite(item)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500">
+              <Star className={`w-4 h-4 ${item.favorite ? 'fill-amber-500 text-amber-500' : ''}`} />
             </button>
-          )}
-        </div>
+            <button onClick={() => onEdit(item)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500">
+              <Edit className="w-4 h-4" />
+            </button>
+            <button onClick={() => onDelete(item._id)} className="p-2 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg text-red-500">
+              <Trash2 className="w-4 h-4" />
+            </button>
+            {item.status !== "completed" && (
+              <button 
+                onClick={() => onIncrement(item)}
+                className="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+              >
+                +1 {typeConfig.unit}
+              </button>
+            )}
+          </div>
+        )}
+        
+        {/* Link for non-authenticated users */}
+        {!user && item.link && (
+          <a href={item.link} target="_blank" rel="noopener noreferrer" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500">
+            <ExternalLink className="w-4 h-4" />
+          </a>
+        )}
       </div>
     )
   }
 
   // Grid view (default)
-  return (
-    <div className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+  const cardContent = (
+    <>
       {/* Cover Image */}
       {item.coverImage && (
         <div className="relative w-full h-48 bg-slate-100 dark:bg-slate-800 overflow-hidden">
           <img src={item.coverImage} alt={item.title} className="w-full h-full object-cover" />
-          {item.favorite && (
+          {user && item.favorite && (
             <div className="absolute top-3 right-3 w-8 h-8 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-full flex items-center justify-center">
               <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
             </div>
-          )}
-          {item.link && (
-            <a 
-              href={item.link} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="absolute top-3 left-3 w-8 h-8 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <ExternalLink className="w-4 h-4 text-slate-700 dark:text-slate-300" />
-            </a>
           )}
         </div>
       )}
@@ -105,17 +106,19 @@ export default function MediaCard({ item, config, onEdit, onDelete, onIncrement,
             {item.title}
           </h3>
           
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button onClick={() => onToggleFavorite(item)} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500">
-              <Star className={`w-3.5 h-3.5 ${item.favorite ? 'fill-amber-500 text-amber-500' : ''}`} />
-            </button>
-            <button onClick={() => onEdit(item)} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500">
-              <Edit className="w-3.5 h-3.5" />
-            </button>
-            <button onClick={() => onDelete(item._id)} className="p-1.5 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg text-red-500">
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
+          {user && (
+            <div className="flex gap-1 shrink-0">
+              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFavorite(item); }} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500">
+                <Star className={`w-3.5 h-3.5 ${item.favorite ? 'fill-amber-500 text-amber-500' : ''}`} />
+              </button>
+              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(item); }} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500">
+                <Edit className="w-3.5 h-3.5" />
+              </button>
+              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(item._id); }} className="p-1.5 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg text-red-500">
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
         </div>
         
         <div className="flex items-center gap-2 mb-3 flex-wrap">
@@ -150,24 +153,46 @@ export default function MediaCard({ item, config, onEdit, onDelete, onIncrement,
           </div>
         </div>
 
-        {/* Action */}
-        <div className="flex justify-end">
-          {item.status !== "completed" ? (
-            <button 
-              onClick={() => onIncrement(item)}
-              className="w-full flex items-center justify-center gap-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 py-2.5 rounded-xl transition-colors shadow-sm shadow-indigo-500/20"
-            >
-              <Play className="w-3.5 h-3.5 fill-current" />
-              +1 {typeConfig.unit}
-            </button>
-          ) : (
-            <div className="w-full text-center py-2.5 text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl flex items-center justify-center gap-2">
-              <CheckCircle className="w-3.5 h-3.5" />
-              Completed
-            </div>
-          )}
-        </div>
+        {/* Action - Only show increment button when authenticated */}
+        {user && (
+          <div className="flex justify-end">
+            {item.status !== "completed" ? (
+              <button 
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onIncrement(item); }}
+                className="w-full flex items-center justify-center gap-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 py-2.5 rounded-xl transition-colors shadow-sm shadow-indigo-500/20"
+              >
+                <Play className="w-3.5 h-3.5 fill-current" />
+                +1 {typeConfig.unit}
+              </button>
+            ) : (
+              <div className="w-full text-center py-2.5 text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl flex items-center justify-center gap-2">
+                <CheckCircle className="w-3.5 h-3.5" />
+                Completed
+              </div>
+            )}
+          </div>
+        )}
       </div>
+    </>
+  );
+
+  // Render as link if item has a link, otherwise as div
+  if (item.link) {
+    return (
+      <a 
+        href={item.link} 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 block"
+      >
+        {cardContent}
+      </a>
+    );
+  }
+
+  return (
+    <div className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+      {cardContent}
     </div>
-  )
+  );
 }

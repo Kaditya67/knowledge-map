@@ -53,6 +53,12 @@ const api = {
     })
     return response.data
   },
+  getMediaStats: async (type) => {
+    const params = new URLSearchParams()
+    if (type && type !== "all") params.append("type", type)
+    const response = await client.get(`/media/stats?${params}`)
+    return response.data
+  },
 
   // Media Config
   getMediaConfig: async () => {

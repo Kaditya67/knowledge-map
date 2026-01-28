@@ -4,15 +4,15 @@ import { protect } from "../middleware/auth.js"
 
 const router = express.Router()
 
-// Get config (or create default if none exists)
-router.get("/", protect, async (req, res) => {
+// Get config (or create default if none exists) - Public read access
+router.get("/", async (req, res) => {
   try {
-    let config = await MediaConfig.findOne({ user: req.user._id })
+    // Return a global config or first available config for public access
+    let config = await MediaConfig.findOne()
 
     if (!config) {
-        // Default seed
+        // Default seed - create a global config without user association
         config = await MediaConfig.create({
-            user: req.user._id,
             customTypes: [
                 { name: "Anime", unit: "Ep", totalLabel: "Total Episodes" },
                 { name: "Manhwa", unit: "Ch", totalLabel: "Total Chapters" },
@@ -35,14 +35,14 @@ router.get("/", protect, async (req, res) => {
   }
 })
 
-// Update config
+// Update config - Requires authentication
 router.put("/", protect, async (req, res) => {
   try {
     const { customTypes, customStatuses } = req.body
     
-    // Find and update or upsert
+    // Find and update the global config or create if it doesn't exist
     const config = await MediaConfig.findOneAndUpdate(
-        { user: req.user._id },
+        {}, // Empty query to find any/first config
         { customTypes, customStatuses },
         { new: true, upsert: true }
     )
