@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { X, Save, FileText, AlertCircle, CheckCircle, Code } from "lucide-react"
 import Button from "../ui/Button"
+import { toast } from "../ui/Toast"
 
 /**
  * SmartEditDialog - Allows bulk editing of media items via markdown format
@@ -26,11 +27,34 @@ export default function SmartEditDialog({ isOpen, onClose, onSave, items, config
   const [preview, setPreview] = useState([])
 
   useEffect(() => {
-    if (isOpen && items) {
-      setMarkdown(itemsToMarkdown(items))
+    if (isOpen) {
+      if (items && items.length > 0) {
+        setMarkdown(itemsToMarkdown(items))
+      } else {
+        // Empty template for adding new items
+        setMarkdown(getEmptyTemplate())
+      }
       setErrors([])
     }
   }, [isOpen, items])
+
+  const getEmptyTemplate = () => {
+    return `# New Item Title
+- Status: planning
+- Current: 0
+- Total: 0
+- Rating: 0
+- Genres: 
+- Tags: 
+- Link: 
+- Notes: 
+
+---
+
+# Another Item (optional)
+- Status: planning
+- Current: 0`
+  }
 
   const itemsToMarkdown = (items) => {
     return items.map(item => {
@@ -53,13 +77,15 @@ export default function SmartEditDialog({ isOpen, onClose, onSave, items, config
   }
 
   const markdownToItems = (md) => {
-    const sections = md.split(/\n---\n/).filter(s => s.trim())
+    // Split by --- with flexible whitespace handling
+    const sections = md.split(/\n\s*-{3,}\s*\n/).filter(s => s.trim())
     const parsed = []
     const parseErrors = []
 
     sections.forEach((section, index) => {
       try {
         const lines = section.split('\n').map(l => l.trim()).filter(Boolean)
+        // Find title line (allow leading whitespace which is already trimmed)
         const titleLine = lines.find(l => l.startsWith('#'))
         
         if (!titleLine) {
@@ -111,6 +137,9 @@ export default function SmartEditDialog({ isOpen, onClose, onSave, items, config
         if (originalItem) {
           item._id = originalItem._id
           item.type = originalItem.type
+        } else {
+          // New item - get type from config or use first available type
+          item.type = config?.customTypes?.[0]?.name || 'Media'
         }
 
         parsed.push(item)
@@ -133,6 +162,7 @@ export default function SmartEditDialog({ isOpen, onClose, onSave, items, config
     
     if (parseErrors.length > 0) {
       setErrors(parseErrors)
+      toast.error(`Please fix ${parseErrors.length} error(s) before saving`)
       return
     }
 
@@ -152,8 +182,10 @@ export default function SmartEditDialog({ isOpen, onClose, onSave, items, config
               <Code className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Smart Edit</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Edit multiple items using markdown format</p>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Smart {items?.length > 0 ? 'Edit' : 'Add'}</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                {items?.length > 0 ? 'Edit multiple items using markdown format' : 'Add new items using markdown format'}
+              </p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
@@ -185,8 +217,8 @@ export default function SmartEditDialog({ isOpen, onClose, onSave, items, config
           {/* Preview/Errors */}
           <div className="w-96 flex flex-col bg-slate-50 dark:bg-slate-900/50">
             <div className="p-4 border-b border-slate-200 dark:border-slate-700">
-              <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                {errors.length > 0 ? 'Errors' : 'Preview'}
+              <h3 className={`text-sm font-bold ${errors.length > 0 ? 'text-red-500' : 'text-slate-700 dark:text-slate-300'}`}>
+                {errors.length > 0 ? `Errors (${errors.length})` : `Preview (${preview.length})`}
               </h3>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-3">

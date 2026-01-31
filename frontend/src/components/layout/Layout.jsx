@@ -7,7 +7,7 @@ import Header from "./Header"
 function Layout({ children }) {
   const [isMobile, setIsMobile] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false) // mobile only
-  const [isCollapsed, setIsCollapsed] = useState(false)     // desktop only
+  const [isCollapsed, setIsCollapsed] = useState(true)     // desktop only - collapsed by default
 
   useEffect(() => {
     const handleResize = () => {
@@ -16,9 +16,8 @@ function Layout({ children }) {
 
       if (mobile) {
         setIsSidebarOpen(false)   // closed by default on mobile
-      } else {
-        setIsCollapsed(false)     // expanded by default on desktop
       }
+      // Desktop sidebar stays collapsed (as set in initial state)
     }
 
     handleResize()

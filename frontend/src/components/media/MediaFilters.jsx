@@ -10,7 +10,7 @@ export default function MediaFilters({
   allTags = [],
   initialFilters = {}
 }) {
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [isAdvancedExpanded, setIsAdvancedExpanded] = useState(false)
   const [filters, setFilters] = useState({
     search: "",
     status: "all",
@@ -71,9 +71,9 @@ export default function MediaFilters({
   const tagOptions = allTags.map(t => ({ value: t, label: t }))
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-      {/* Search Bar - Always Visible */}
-      <div className="p-4">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden">
+      {/* Search Bar */}
+      <div className="p-4 border-b border-slate-100 dark:border-slate-700">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
           <input
@@ -94,28 +94,22 @@ export default function MediaFilters({
         </div>
       </div>
 
-      {/* Filter Toggle */}
-      <div className="px-4 pb-3">
+      {/* Advanced Filter Toggle */}
+      <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
         <button
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={() => setIsAdvancedExpanded(!isAdvancedExpanded)}
           className="w-full flex items-center justify-between px-4 py-2 bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-colors text-sm font-medium text-slate-700 dark:text-slate-300"
         >
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4" />
             <span>Advanced Filters</span>
-            {activeFilterCount > 0 && (
-              <span className="px-2 py-0.5 bg-indigo-500 text-white text-xs rounded-full">
-                {activeFilterCount}
-              </span>
-            )}
           </div>
-          <span className="text-xs text-slate-500">{isExpanded ? "Hide" : "Show"}</span>
+          <span className="text-xs text-slate-500">{isAdvancedExpanded ? "Hide" : "Show"}</span>
         </button>
       </div>
 
       {/* Advanced Filters - Expandable */}
-      {isExpanded && (
-        <div className="px-4 pb-4 space-y-4 border-t border-slate-100 dark:border-slate-700 pt-4 animate-fade-in">
+      {isAdvancedExpanded && (
+        <div className="px-4 pb-4 space-y-4 pt-4 animate-fade-in">
           {/* Status & Favorite */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Select

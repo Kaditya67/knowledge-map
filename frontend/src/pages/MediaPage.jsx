@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Plus, Film, Book, MonitorPlay, ExternalLink, Edit, Trash2, Play, Settings, LayoutGrid, List, BarChart3, FileText, ChevronDown, AlertTriangle, X } from "lucide-react"
+import { Plus, Film, Book, MonitorPlay, ExternalLink, Edit, Trash2, Play, Settings, LayoutGrid, List, BarChart3, FileText, ChevronDown, AlertTriangle, X, Filter, CheckSquare, Square, Download } from "lucide-react"
 import api from "../services/api"
 import { useAuth } from "../context/AuthContext"
 import Button from "../components/ui/Button"
@@ -10,7 +10,9 @@ import MediaCard from "../components/media/MediaCard"
 import MediaFilters from "../components/media/MediaFilters"
 import MediaStats from "../components/media/MediaStats"
 import SmartEditDialog from "../components/media/SmartEditDialog"
+import ExportDialog from "../components/media/ExportDialog"
 import ConfirmDialog from "../components/ui/ConfirmDialog"
+import { toast, ToastContainer } from "../components/ui/Toast"
 
 export default function MediaPage() {
   const { user } = useAuth()
@@ -27,7 +29,13 @@ export default function MediaPage() {
   const [showDialog, setShowDialog] = useState(false)
   const [showSectionDialog, setShowSectionDialog] = useState(false)
   const [showSmartEdit, setShowSmartEdit] = useState(false)
+  const [showExport, setShowExport] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
+  
+  // Selection mode for Smart Edit
+  const [selectionMode, setSelectionMode] = useState(false)
+  const [selectedItems, setSelectedItems] = useState(new Set())
   
   const [filters, setFilters] = useState({})
   
@@ -46,6 +54,17 @@ export default function MediaPage() {
   const allGenres = [...new Set(media.flatMap(m => m.genres || []))].sort()
   const allTags = [...new Set(media.flatMap(m => m.tags || []))].sort()
 
+  // Calculate active filter count
+  const activeFilterCount = Object.entries(filters).filter(([key, value]) => {
+    if (key === "search" && value) return true
+    if (key === "status" && value !== "all") return true
+    if (key === "favorite" && value) return true
+    if ((key === "genres" || key === "tags") && value.length > 0) return true
+    if ((key === "minRating" || key === "maxRating") && value) return true
+    return false
+  }).length
+
+
   const fetchData = async () => {
     try {
       setLoading(true)
@@ -57,7 +76,9 @@ export default function MediaPage() {
       setConfig(configData)
       
       if (!activeSection && configData?.customTypes?.length > 0) {
-        setActiveSection(configData.customTypes[0].name)
+        // Prefer 'Manhwa' as default, otherwise use first type
+        const manhwaType = configData.customTypes.find(t => t.name === 'Manhwa')
+        setActiveSection(manhwaType ? manhwaType.name : configData.customTypes[0].name)
       }
     } catch (error) {
       console.error("Failed to fetch data", error)
@@ -137,7 +158,7 @@ export default function MediaPage() {
       const updated = await api.updateMediaConfig(newConfig)
       setConfig(updated)
     } catch (error) {
-      alert("Failed to save configuration")
+      toast.error("Failed to save configuration")
     }
   }
 
@@ -150,6 +171,7 @@ export default function MediaPage() {
     await handleConfigUpdate(newConfig)
     setShowSectionDialog(false)
     setActiveSection(sectionData.name)
+    toast.success(`Section "${sectionData.name}" saved successfully`)
   }
 
   const handleDeleteSection = (typeName) => {
@@ -193,16 +215,27 @@ export default function MediaPage() {
       setShowDialog(false)
       setEditingItem(null)
       fetchMedia()
+      toast.success(editingItem ? "Item updated successfully" : "Item created successfully")
     } catch (error) {
-      alert("Failed to save media")
+      toast.error("Failed to save media")
     }
   }
 
-  const handleDelete = async (id) => {
-    if (confirm("Delete this item?")) {
-      await api.deleteMedia(id)
-      fetchMedia()
-    }
+  const handleDelete = (item) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: "Delete Item",
+      message: `Are you sure you want to delete "${item.title}"?`,
+      onConfirm: async () => {
+        try {
+          await api.deleteMedia(item._id)
+          fetchMedia()
+          toast.success("Item deleted successfully")
+        } catch (error) {
+          toast.error("Failed to delete item")
+        }
+      }
+    })
   }
 
   const handleIncrement = async (item) => {
@@ -217,7 +250,8 @@ export default function MediaPage() {
       await api.updateMedia(item._id, updates)
       fetchMedia()
     } catch (error) {
-      console.error("Failed to update progress")
+      console.error("Failed to update progress", error)
+      toast.error("Failed to update progress")
     }
   }
 
@@ -226,17 +260,116 @@ export default function MediaPage() {
       await api.updateMedia(item._id, { favorite: !item.favorite })
       fetchMedia()
     } catch (error) {
-      console.error("Failed to toggle favorite")
+      console.error("Failed to toggle favorite", error)
+      toast.error("Failed to toggle favorite")
     }
   }
 
   const handleSmartEditSave = async (items) => {
     try {
-      await api.batchUpdateMedia(items)
-      fetchMedia()
+      // Separate new items (no _id) from existing items (has _id)
+      const newItems = items.filter(item => !item._id)
+      const existingItems = items.filter(item => item._id)
+      
+      let createdCount = 0
+      let updatedCount = 0
+      let skippedCount = 0
+      const errors = []
+      
+      // Create new items
+      for (const item of newItems) {
+        try {
+          // Check if item with same title already exists
+          const duplicate = media.find(m => 
+            m.title.toLowerCase() === item.title.toLowerCase() && 
+            m.type === item.type
+          )
+          
+          if (duplicate) {
+            skippedCount++
+            errors.push(`"${item.title}" already exists`)
+          } else {
+            await api.createMedia(item)
+            createdCount++
+          }
+        } catch (error) {
+          console.error('Error creating item:', error)
+          errors.push(`Failed to create "${item.title}": ${error.message}`)
+        }
+      }
+      
+      // Update existing items
+      if (existingItems.length > 0) {
+        try {
+          await api.batchUpdateMedia(existingItems)
+          updatedCount = existingItems.length
+        } catch (error) {
+          console.error('Error updating items:', error)
+          errors.push(`Failed to update items: ${error.message}`)
+        }
+      }
+      
+      // Show results
+      const messages = []
+      if (createdCount > 0) messages.push(`Created ${createdCount} item(s)`)
+      if (updatedCount > 0) messages.push(`Updated ${updatedCount} item(s)`)
+      if (skippedCount > 0) messages.push(`Skipped ${skippedCount} duplicate(s)`)
+      
+      if (messages.length > 0) {
+        toast.success(messages.join(' • '))
+      }
+      
+      if (errors.length > 0) {
+        errors.forEach(error => toast.error(error))
+      }
+      
+      // Refresh media list
+      await fetchMedia()
+      setShowSmartEdit(false)
     } catch (error) {
-      console.error("Failed to save batch updates", error)
-      alert("Failed to save changes")
+      console.error("Failed to save items", error)
+      toast.error("Failed to save changes: " + error.message)
+    }
+  }
+
+  // Selection mode handlers
+  const handleEnterSelectionMode = () => {
+    setSelectionMode(true)
+    // Select all filtered items by default
+    const allIds = new Set(filteredMedia.map(item => item._id))
+    setSelectedItems(allIds)
+  }
+
+  const handleExitSelectionMode = () => {
+    setSelectionMode(false)
+    setSelectedItems(new Set())
+  }
+
+  const handleToggleSelection = (itemId) => {
+    setSelectedItems(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId)
+      } else {
+        newSet.add(itemId)
+      }
+      return newSet
+    })
+  }
+
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      const allIds = new Set(filteredMedia.map(item => item._id))
+      setSelectedItems(allIds)
+    } else {
+      setSelectedItems(new Set())
+    }
+  }
+
+  const handleOpenSmartEdit = () => {
+    const itemsToEdit = filteredMedia.filter(item => selectedItems.has(item._id))
+    if (itemsToEdit.length > 0) {
+      setShowSmartEdit(true)
     }
   }
 
@@ -258,15 +391,24 @@ export default function MediaPage() {
   const customTypes = config?.customTypes || []
   const sectionCount = media.filter(m => m.type === activeSection).length
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-indigo-200 dark:border-indigo-900 border-t-indigo-600 dark:border-t-indigo-400 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600 dark:text-slate-400 font-medium">Loading media library...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="max-w-[1920px] mx-auto h-[calc(100vh-60px)] flex flex-col gap-4 p-4 md:p-6">
-      {/* Compact Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0">
-        <div className="flex items-center gap-4 flex-wrap">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">Media Library</h1>
-            <p className="text-slate-500 dark:text-slate-400 text-sm">Track your collections</p>
-          </div>
+    <div className="max-w-[1920px] mx-auto h-[calc(100vh-60px)] flex flex-col gap-3 p-4 md:p-6">
+      {/* Ultra Compact Header - Single Line */}
+      <div className="flex items-center justify-between gap-3 shrink-0">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white">Media Library</h1>
           
           {/* Section Selector - Compact Dropdown */}
           {viewMode === "library" && customTypes.length > 0 && (
@@ -274,7 +416,7 @@ export default function MediaPage() {
               <select
                 value={activeSection || ""}
                 onChange={(e) => setActiveSection(e.target.value)}
-                className="appearance-none pl-4 pr-10 py-2.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl font-medium text-slate-900 dark:text-white hover:border-indigo-500 dark:hover:border-indigo-400 focus:border-indigo-500 dark:focus:border-indigo-400 outline-none transition-colors cursor-pointer"
+                className="appearance-none pl-3 pr-8 py-1.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-900 dark:text-white hover:border-indigo-500 dark:hover:border-indigo-400 focus:border-indigo-500 dark:focus:border-indigo-400 outline-none transition-colors cursor-pointer"
               >
                 {customTypes.map(type => (
                   <option key={type.name} value={type.name}>
@@ -282,50 +424,133 @@ export default function MediaPage() {
                   </option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
             </div>
           )}
         </div>
         
-        {/* View Mode Tabs */}
-        {user && (
-          <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center gap-1">
-            <button 
-              onClick={() => setViewMode("library")}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
-                viewMode === "library"
-                ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
-                : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-              }`}
+        {/* View Mode Tabs + Filter Button */}
+        <div className="flex items-center gap-2">
+          {viewMode === "library" && !selectionMode && (
+            <>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-1.5 ${
+                  showFilters || activeFilterCount > 0
+                    ? "bg-indigo-500 text-white shadow-sm"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+                }`}
+              >
+                <Filter className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Filters</span>
+                {activeFilterCount > 0 && (
+                  <span className="px-1.5 py-0.5 bg-white/20 rounded-full text-[10px] font-semibold">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+              
+              {user && (
+                <>
+                  <button
+                    onClick={handleEnterSelectionMode}
+                    className="px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+                  >
+                    <CheckSquare className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Batch Edit</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => setShowExport(true)}
+                    className="px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+                    disabled={filteredMedia.length === 0}
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Export</span>
+                  </button>
+                </>
+              )}
+            </>
+          )}
+          
+          {user && (
+            <div className="bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg flex items-center gap-0.5">
+              <button 
+                onClick={() => setViewMode("library")}
+                className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center gap-1.5 ${
+                  viewMode === "library"
+                  ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
+                  : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                }`}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Library</span>
+              </button>
+              <button 
+                onClick={() => setViewMode("stats")}
+                className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center gap-1.5 ${
+                  viewMode === "stats"
+                  ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
+                  : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                }`}
+              >
+                <BarChart3 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Stats</span>
+              </button>
+              <button 
+                onClick={() => setViewMode("manage")}
+                className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center gap-1.5 ${
+                  viewMode === "manage"
+                  ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
+                  : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                }`}
+              >
+                <Settings className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Manage</span>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Selection Mode Toolbar */}
+      {selectionMode && viewMode === "library" && (
+        <div className="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-xl p-3 flex items-center justify-between shrink-0 animate-fade-in">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => handleSelectAll(selectedItems.size !== filteredMedia.length)}
+              className="flex items-center gap-2 text-sm font-medium text-indigo-700 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-indigo-100 transition-colors"
             >
-              <LayoutGrid className="w-4 h-4" />
-              <span className="hidden sm:inline">Library</span>
+              {selectedItems.size === filteredMedia.length ? (
+                <CheckSquare className="w-4 h-4" />
+              ) : (
+                <Square className="w-4 h-4" />
+              )}
+              <span>Select All</span>
             </button>
-            <button 
-              onClick={() => setViewMode("stats")}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
-                viewMode === "stats"
-                ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
-                : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-              }`}
+            <div className="h-4 w-px bg-indigo-300 dark:bg-indigo-700"></div>
+            <span className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">
+              {selectedItems.size} selected
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleExitSelectionMode}
+              className="px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
-              <BarChart3 className="w-4 h-4" />
-              <span className="hidden sm:inline">Stats</span>
+              Cancel
             </button>
-            <button 
-              onClick={() => setViewMode("manage")}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
-                viewMode === "manage"
-                ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
-                : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-              }`}
+            <button
+              onClick={handleOpenSmartEdit}
+              disabled={selectedItems.size === 0}
+              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white text-xs font-bold rounded-lg transition-colors disabled:cursor-not-allowed flex items-center gap-1.5"
             >
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Manage</span>
+              <FileText className="w-3.5 h-3.5" />
+              Edit Selected
             </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {viewMode === "manage" ? (
         /* MANAGE VIEW */
@@ -411,22 +636,26 @@ export default function MediaPage() {
         </div>
       ) : (
         /* LIBRARY VIEW - Full Width */
-        <div className="flex-1 flex flex-col gap-4 overflow-hidden animate-fade-in">
-          {/* Filters */}
-          <MediaFilters
-            onFilterChange={setFilters}
-            config={config}
-            allGenres={allGenres}
-            allTags={allTags}
-          />
+        <div className="flex-1 flex flex-col overflow-hidden animate-fade-in relative">
+          {/* Filters Dropdown - Positioned Absolutely */}
+          {showFilters && (
+            <div className="absolute top-0 left-0 right-0 z-20 animate-fade-in">
+              <MediaFilters
+                onFilterChange={setFilters}
+                config={config}
+                allGenres={allGenres}
+                allTags={allTags}
+              />
+            </div>
+          )}
 
           {/* Content Area */}
           <div className="flex-1 flex flex-col bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
             {/* Toolbar */}
-            <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white dark:bg-slate-800 z-10 shrink-0">
-              <div className="flex items-center gap-3">
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white">{activeSection}</h2>
-                <span className="px-2.5 py-1 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-semibold text-slate-500">
+            <div className="p-3 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-white dark:bg-slate-800 z-10 shrink-0">
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold text-slate-900 dark:text-white">{activeSection}</h2>
+                <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded-md text-[10px] font-semibold text-slate-500">
                   {filteredMedia.length} {filteredMedia.length === 1 ? 'item' : 'items'}
                 </span>
               </div>
@@ -462,10 +691,9 @@ export default function MediaPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => setShowSmartEdit(true)}
-                      disabled={filteredMedia.length === 0}
                     >
                       <FileText className="w-4 h-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Smart Edit</span>
+                      <span className="hidden sm:inline">Smart Add</span>
                     </Button>
                     <Button size="sm" onClick={() => { 
                       setEditingItem({ type: activeSection }); 
@@ -511,6 +739,9 @@ export default function MediaPage() {
                       onIncrement={handleIncrement}
                       onToggleFavorite={handleToggleFavorite}
                       viewMode={viewLayout}
+                      selectionMode={selectionMode}
+                      isSelected={selectedItems.has(item._id)}
+                      onSelect={() => handleToggleSelection(item._id)}
                     />
                   ))}
                 </div>
@@ -571,6 +802,30 @@ export default function MediaPage() {
           </div>
         </div>
       )}
+
+      {/* Smart Edit Dialog - handles both Smart Add (empty) and Batch Edit (selected items) */}
+      <SmartEditDialog
+        isOpen={showSmartEdit}
+        onClose={() => setShowSmartEdit(false)}
+        onSave={(items) => {
+          handleSmartEditSave(items)
+          handleExitSelectionMode()
+        }}
+        items={selectionMode ? filteredMedia.filter(item => selectedItems.has(item._id)) : []}
+        config={config}
+        defaultType={activeSection || config?.customTypes?.[0]?.name}
+      />
+
+      {/* Export Dialog */}
+      <ExportDialog
+        isOpen={showExport}
+        onClose={() => setShowExport(false)}
+        data={filteredMedia}
+        section={activeSection || "All"}
+      />
+
+      {/* Toast Notifications */}
+      <ToastContainer />
     </div>
   )
 }

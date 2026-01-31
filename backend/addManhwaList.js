@@ -6,99 +6,52 @@ dotenv.config()
 
 const manhwaList = [
   {
-    title: "I shall master this family",
-    current: 190,
-    total: 200,
-    link: "https://bato.si/title/86408-i-shall-master-this-family-official",
-    coverImage: "https://us-a.tapas.io/sa/98/89fcb7ab-df03-4563-a072-3fadea7f4f08_z.jpg",
-    notes: "Cool ruling queen",
-    genres: ["Action", "Rule", "Isekai"],
-    tags: ["Rule"]
+    title: "The great mage returns after 4000 years",
+    current: 87,
+    total: 0,
+    link: "https://mangapark.com/title/100612-en-the-great-mage-returns-after-4000-years"
   },
   {
-    title: "The Heavenly Demon Can't live a normal life",
-    current: 176,
-    link: "https://mangapark.io/title/127686-en-the-heavenly-demon-can-t-live-a-normal-life"
+    title: "The Beginning after the End",
+    current: 83,
+    total: 0,
+    link: "https://ww9.thebeginningaftertheendmanga.com/"
   },
   {
-    title: "Nano Machine",
-    current: 145,
-    link: "https://mangapark.io/title/101273-en-nano-machine"
+    title: "Dungeon Reset",
+    current: 66,
+    total: 0,
+    link: "https://dungeon-reset.xyz/"
   },
   {
-    title: "Player who Returned 10,000 years later",
-    current: 139,
-    link: "https://asuracomic.net/series/player-who-returned-10000-years-later-17680d81"
-  },
-  {
-    title: "Solo Farming in the Tower",
-    current: 109,
-    link: "https://en-thunderscans.com/comics/solo-farming-in-the-tower/"
-  },
-  {
-    title: "The gardener in a hunter world",
-    current: 84,
-    link: "https://www.webtoons.com/en/fantasy/the-gardener-in-a-hunter-world/s2-episode-83/viewer?title_no=6220&episode_no=83"
-  },
-  {
-    title: "Magic Level 99990000 all attributes great sage",
-    current: 70,
-    link: "https://en-thunderscans.com/comics/magic-level-99990000-all-attribute-great-sage/"
-  },
-  {
-    title: "I got the weakest class dragon tamer",
-    current: 65,
-    link: "https://en-thunderscans.com/comics/0086250808-i-got-the-weakest-class-dragon-tamer/"
-  },
-  {
-    title: "The Archmage's Restaurant",
+    title: "My Dad is too Strong",
     current: 60,
-    link: "https://mangapark.org/title/381666-en-the-archmage-s-restaurant"
+    total: 0,
+    link: "https://en-thunderscans.com/comics/my-dad-is-too-strong/"
   },
   {
-    title: "The Apothecary prince",
+    title: "Player who can't level up",
     current: 58,
-    link: "https://www.webtoons.com/en/fantasy/the-apothecary-prince/episode-58/viewer?title_no=6335&episode_no=58"
+    total: 0,
+    link: "https://asuracomic.net/series/player-who-cant-level-up-efc11102"
   },
   {
-    title: "Monster Eater",
-    current: 43,
-    link: "https://en-thunderscans.com/comics/monster-eater/"
+    title: "Homeless/No Home",
+    current: 40,
+    total: 0,
+    link: "https://nohomemanhwa.online/"
   },
   {
-    title: "Auto hunting with clones",
-    current: 32,
-    link: "https://www.toongod.org/webtoon/auto-hunting-with-clones/"
+    title: "I am the Queen in this life",
+    current: 37,
+    total: 0,
+    link: "https://www.webtoons.com/en/fantasy/im-the-queen-in-this-life/episode-37/viewer?title_no=4886&episode_no=37"
   },
   {
-    title: "Resigning and healing in another world",
-    current: 23,
-    link: "https://www.webtoons.com/en/fantasy/resigning-and-healing-in-another-world/ep-23-the-lie-detector/viewer?title_no=5264&episode_no=24"
-  },
-  {
-    title: "Goddess of Abundance and the Genius Rogue Apostle",
-    current: 21,
-    link: "https://en-thunderscans.com/comics/goddess-of-abundance-and-the-genius-rogue-apostle/"
-  },
-  {
-    title: "Return of the first patriarch the strongest reincarnates into his descendant 1000 years later",
-    current: 18,
-    link: "https://utoon.net/manga/return-of-the-first-patriarch-the-strongest-reincarnates-into-his-descendant-1000-years-later/"
-  },
-  {
-    title: "The Lord of Coins",
-    current: 9,
-    link: "https://vortexscans.org/series/the-lord-of-coins"
-  },
-  {
-    title: "Dukedom's Legendary Prodigy",
-    current: 8,
-    link: "https://asuracomic.net/series/dukedoms-legendary-prodigy-2675714e"
-  },
-  {
-    title: "Boundless Necromancer",
-    current: 4,
-    link: "https://www.toongod.org/webtoon/boundless-necromancer/"
+    title: "The fist fighting genius mage",
+    current: 12,
+    total: 0,
+    link: "https://www.webtoons.com/en/action/the-fistfighting-genius-mage/episode-12/viewer?title_no=8018&episode_no=12"
   }
 ];
 
@@ -119,7 +72,7 @@ const addManhwa = async () => {
         total: item.total || 0,
         unit: "Ch",
         status: "planning",
-        rating: 9,
+        rating: 8,
         link: item.link,
         coverImage: item.coverImage || "",
         notes: item.notes || "",
