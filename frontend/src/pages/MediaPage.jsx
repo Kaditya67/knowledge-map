@@ -332,6 +332,50 @@ export default function MediaPage() {
     }
   }
 
+  const handleBatchDelete = () => {
+    if (selectedItems.size === 0) return
+
+    setConfirmDialog({
+      isOpen: true,
+      title: "Delete Multiple Items",
+      message: `Are you sure you want to delete ${selectedItems.size} selected items? This action cannot be undone.`,
+      onConfirm: async () => {
+        try {
+          // Identify items to delete
+          const itemIdsToDelete = Array.from(selectedItems)
+          const itemsToDelete = filteredMedia.filter(item => selectedItems.has(item._id))
+          
+          let successCount = 0
+          let failCount = 0
+          
+          // Delete items one by one (since no batch delete API)
+          for (const id of itemIdsToDelete) {
+            try {
+              await api.deleteMedia(id)
+              successCount++
+            } catch (error) {
+              console.error(`Failed to delete item ${id}`, error)
+              failCount++
+            }
+          }
+          
+          if (successCount > 0) {
+            toast.success(`Successfully deleted ${successCount} items`)
+          }
+          
+          if (failCount > 0) {
+            toast.error(`Failed to delete ${failCount} items`)
+          }
+          
+          handleExitSelectionMode()
+          fetchMedia()
+        } catch (error) {
+          toast.error("Failed to process batch deletion")
+        }
+      }
+    })
+  }
+
   // Selection mode handlers
   const handleEnterSelectionMode = () => {
     setSelectionMode(true)
@@ -539,6 +583,14 @@ export default function MediaPage() {
               className="px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
               Cancel
+            </button>
+            <button
+              onClick={handleBatchDelete}
+              disabled={selectedItems.size === 0}
+              className="px-3 py-1.5 bg-red-500 hover:bg-red-600 disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white text-xs font-bold rounded-lg transition-colors disabled:cursor-not-allowed flex items-center gap-1.5"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Delete ({selectedItems.size})
             </button>
             <button
               onClick={handleOpenSmartEdit}

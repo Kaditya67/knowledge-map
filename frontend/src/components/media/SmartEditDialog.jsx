@@ -21,7 +21,7 @@ import { toast } from "../ui/Toast"
  * ---
  */
 
-export default function SmartEditDialog({ isOpen, onClose, onSave, items, config }) {
+export default function SmartEditDialog({ isOpen, onClose, onSave, items, config, defaultType }) {
   const [markdown, setMarkdown] = useState("")
   const [errors, setErrors] = useState([])
   const [preview, setPreview] = useState([])
@@ -69,7 +69,8 @@ export default function SmartEditDialog({ isOpen, onClose, onSave, items, config
         item.favorite ? `- Favorite: true` : null,
         item.link ? `- Link: ${item.link}` : null,
         item.coverImage ? `- Cover: ${item.coverImage}` : null,
-        item.notes ? `- Notes: ${item.notes}` : null,
+        item.notes ? `- Notes: ${item.
+          notes}` : null,
       ].filter(Boolean)
       
       return lines.join('\n')
@@ -138,8 +139,8 @@ export default function SmartEditDialog({ isOpen, onClose, onSave, items, config
           item._id = originalItem._id
           item.type = originalItem.type
         } else {
-          // New item - get type from config or use first available type
-          item.type = config?.customTypes?.[0]?.name || 'Media'
+          // New item - get type from defaultType prop or config or use first available type
+          item.type = defaultType || config?.customTypes?.[0]?.name || 'Media'
         }
 
         parsed.push(item)
