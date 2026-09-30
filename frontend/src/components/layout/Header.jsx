@@ -59,7 +59,7 @@ function Header({ onMenuClick, isSidebarOpen }) {
   }
 
   return (
-    <header className="h-16 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-40">
+    <header className="h-16 bg-white/60 dark:bg-[#0a0a0a]/60 backdrop-blur-2xl border-b border-slate-200/60 dark:border-white/10 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-40">
       {/* Mobile menu button */}
       <button
         onClick={onMenuClick}

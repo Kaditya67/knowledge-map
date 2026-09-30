@@ -9,7 +9,6 @@ const pageSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["concept", "setup", "project", "custom"],
       default: "concept",
     },
     summary: {

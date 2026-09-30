@@ -26,12 +26,12 @@ function Layout({ children }) {
   }, [])
 
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden">
+    <div className="flex h-screen bg-slate-50 dark:bg-[#0a0a0a] text-slate-900 dark:text-slate-100 overflow-hidden font-sans antialiased selection:bg-indigo-500/30">
       
       {/* Mobile overlay */}
       {isMobile && isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 md:hidden transition-opacity"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
@@ -40,7 +40,7 @@ function Layout({ children }) {
       <div
         className={`
           fixed md:relative inset-y-0 left-0 z-50
-          transition-all duration-300
+          transition-all duration-300 ease-in-out
           ${isMobile
             ? isSidebarOpen
               ? "translate-x-0 w-72"
@@ -58,7 +58,10 @@ function Layout({ children }) {
       </div>
 
       {/* Main content */}
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex flex-col flex-1 overflow-hidden relative">
+        {/* Subtle background glow effect */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-lg h-[500px] bg-indigo-500/10 dark:bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
+
         <Header
           onMenuClick={() =>
             isMobile
@@ -68,8 +71,8 @@ function Layout({ children }) {
           isSidebarOpen={isMobile ? isSidebarOpen : !isCollapsed}
         />
 
-        <main className="flex-1 overflow-y-auto">
-          <div className="min-h-full p-8 bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+        <main className="flex-1 overflow-y-auto relative z-10">
+          <div className="min-h-full p-4 md:p-8">
             {children}
           </div>
         </main>

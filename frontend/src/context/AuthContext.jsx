@@ -26,6 +26,14 @@ export const AuthProvider = ({ children }) => {
     checkAuth()
   }, [])
 
+  useEffect(() => {
+    if (user?.preferences?.accentColor) {
+      document.documentElement.setAttribute('data-theme', user.preferences.accentColor)
+    } else {
+      document.documentElement.removeAttribute('data-theme')
+    }
+  }, [user])
+
   const login = async (email, password) => {
     const data = await api.login({ email, password })
     localStorage.setItem("token", data.token)
@@ -45,8 +53,22 @@ export const AuthProvider = ({ children }) => {
     setUser(null)
   }
 
+  const updatePreferences = async (newPrefs) => {
+    try {
+      const updatedPrefs = await api.updatePreferences(newPrefs)
+      setUser((prevUser) => ({
+        ...prevUser,
+        preferences: updatedPrefs
+      }))
+      return updatedPrefs
+    } catch (error) {
+      console.error("Failed to update preferences:", error)
+      throw error
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, updatePreferences, loading }}>
       {children}
     </AuthContext.Provider>
   )

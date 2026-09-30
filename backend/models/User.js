@@ -22,6 +22,13 @@ const userSchema = new mongoose.Schema(
       required: true,
       minlength: 6,
     },
+    preferences: {
+      cardsPerPage: { type: Number, default: 20 },
+      defaultViewMode: { type: String, enum: ["grid", "list"], default: "grid" },
+      customCategories: { type: [String], default: ["concept", "setup", "project", "custom"] },
+      accentColor: { type: String, default: "indigo" },
+      colorMode: { type: String, enum: ["light", "dark", "system"], default: "system" }
+    }
   },
   {
     timestamps: true,

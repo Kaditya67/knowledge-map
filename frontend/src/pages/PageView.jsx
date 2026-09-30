@@ -77,7 +77,7 @@ function PageView() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="w-full max-w-screen-xl mx-auto">
       {/* Navigation */}
       <div className="flex items-center justify-between mb-8">
         {backTo ? (

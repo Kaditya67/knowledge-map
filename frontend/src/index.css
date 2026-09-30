@@ -29,7 +29,66 @@
   --border-color: #334155;
   --accent-color: #818cf8;
   --accent-hover: #a5b4fc;
-  --accent-light: #1e1b4b;
+}
+
+:root {
+  --theme-50: #eef2ff;
+  --theme-100: #e0e7ff;
+  --theme-200: #c7d2fe;
+  --theme-300: #a5b4fc;
+  --theme-400: #818cf8;
+  --theme-500: #6366f1;
+  --theme-600: #4f46e5;
+  --theme-700: #4338ca;
+  --theme-800: #3730a3;
+  --theme-900: #312e81;
+  --theme-950: #1e1b4b;
+}
+
+[data-theme="rose"] {
+  --theme-50: #fff1f2;
+  --theme-100: #ffe4e6;
+  --theme-200: #fecdd3;
+  --theme-300: #fda4af;
+  --theme-400: #fb7185;
+  --theme-500: #f43f5e;
+  --theme-600: #e11d48;
+  --theme-700: #be123c;
+  --theme-800: #9f1239;
+  --theme-900: #881337;
+  --theme-950: #4c0519;
+}
+
+[data-theme="emerald"] {
+  --theme-50: #ecfdf5;
+  --theme-100: #d1fae5;
+  --theme-200: #a7f3d0;
+  --theme-300: #6ee7b7;
+  --theme-400: #34d399;
+  --theme-500: #10b981;
+  --theme-600: #059669;
+  --theme-700: #047857;
+  --theme-800: #065f46;
+  --theme-900: #064e3b;
+  --theme-950: #022c22;
+}
+
+[data-theme="violet"] {
+  --theme-50: #f5f3ff;
+  --theme-100: #ede9fe;
+  --theme-200: #ddd6fe;
+  --theme-300: #c4b5fd;
+  --theme-400: #a78bfa;
+  --theme-500: #8b5cf6;
+  --theme-600: #7c3aed;
+  --theme-700: #6d28d9;
+  --theme-800: #5b21b6;
+  --theme-900: #4c1d95;
+  --theme-950: #2e1065;
+}
+
+html {
+  font-size: 13px;
 }
 
 body {

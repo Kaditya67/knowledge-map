@@ -35,6 +35,7 @@ router.post("/register", async (req, res) => {
         _id: user._id,
         username: user.username,
         email: user.email,
+        preferences: user.preferences,
         token: generateToken(user._id),
       })
     } else {
@@ -59,6 +60,7 @@ router.post("/login", async (req, res) => {
         _id: user._id,
         username: user.username,
         email: user.email,
+        preferences: user.preferences,
         token: generateToken(user._id),
       })
     } else {
@@ -73,7 +75,33 @@ router.post("/login", async (req, res) => {
 // @route   GET /api/auth/me
 // @access  Private
 router.get("/me", protect, async (req, res) => {
-  res.json(req.user)
+  res.json({
+    _id: req.user._id,
+    username: req.user.username,
+    email: req.user.email,
+    preferences: req.user.preferences,
+  })
+})
+
+// @desc    Update user preferences
+// @route   PUT /api/auth/preferences
+// @access  Private
+router.put("/preferences", protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id)
+    if (user) {
+      user.preferences = {
+        ...user.preferences,
+        ...req.body
+      }
+      const updatedUser = await user.save()
+      res.json(updatedUser.preferences)
+    } else {
+      res.status(404).json({ message: "User not found" })
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
 })
 
 export default router

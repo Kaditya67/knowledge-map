@@ -10,12 +10,13 @@ import TagsPage from "./pages/TagsPage"
 import SearchPage from "./pages/SearchPage"
 import MediaPage from "./pages/MediaPage"
 import LoginPage from "./pages/LoginPage"
+import SettingsPage from "./pages/SettingsPage"
 
 function App() {
   return (
-    <ThemeProvider>
-      <AppProvider>
-        <AuthProvider>
+    <AuthProvider>
+      <ThemeProvider>
+        <AppProvider>
           <Router>
             <Layout>
               <Routes>
@@ -27,12 +28,13 @@ function App() {
                 <Route path="/tags" element={<TagsPage />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/media" element={<MediaPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
               </Routes>
             </Layout>
           </Router>
-        </AuthProvider>
-      </AppProvider>
-    </ThemeProvider>
+        </AppProvider>
+      </ThemeProvider>
+    </AuthProvider>
   )
 }
 

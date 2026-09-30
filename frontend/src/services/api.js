@@ -80,6 +80,11 @@ const api = {
     return data
   },
 
+  updatePreferences: async (preferences) => {
+    const { data } = await client.put("/auth/preferences", preferences)
+    return data
+  },
+
   // Pages
   getPages: async (filters = {}) => {
     const params = new URLSearchParams()

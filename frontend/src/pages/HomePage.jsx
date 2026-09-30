@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useLocation } from "react-router-dom"
 import { useApp } from "../context/AppContext"
+import { useAuth } from "../context/AuthContext"
 import PageCard from "../components/page/PageCard"
 import Select from "../components/ui/Select"
 import Button from "../components/ui/Button"
@@ -10,10 +11,11 @@ import { Star, Grid, List, FileText, Sparkles } from "lucide-react"
 
 function HomePage() {
   const { pages, loading, error, fetchPages } = useApp()
+  const { user } = useAuth()
 
   const [filter, setFilter] = useState("all")
   const [showFavorites, setShowFavorites] = useState(false)
-  const [viewMode, setViewMode] = useState("grid")
+  const [viewMode, setViewMode] = useState(user?.preferences?.defaultViewMode || "grid")
 
   /* ---------------- Persist View Mode ---------------- */
   useEffect(() => {
@@ -24,10 +26,7 @@ function HomePage() {
   const location = useLocation()
   useEffect(() => {
     if (location.state?.welcome) {
-      // Could use a toast here, for now using a simple alert or console log
-      // But typically we'd set a temporary welcome banner
       setShowWelcomeBanner(true)
-      // Clear state so it doesn't persist on refresh (SPA refresh might keep it, but location state usually clears on new nav)
       window.history.replaceState({}, document.title)
     }
   }, [location])
@@ -48,11 +47,20 @@ function HomePage() {
 
   const typeOptions = [
     { value: "all", label: "All Types" },
-    { value: "concept", label: "Concepts" },
-    { value: "setup", label: "Setups" },
-    { value: "project", label: "Projects" },
-    { value: "custom", label: "Custom" },
+    ...(user?.preferences?.customCategories?.length
+      ? user.preferences.customCategories.map(cat => ({ value: cat, label: cat.charAt(0).toUpperCase() + cat.slice(1) }))
+      : [
+          { value: "concept", label: "Concepts" },
+          { value: "setup", label: "Setups" },
+          { value: "project", label: "Projects" },
+          { value: "custom", label: "Custom" },
+        ]
+    )
   ]
+
+  const displayedPages = user?.preferences?.cardsPerPage 
+    ? pages.slice(0, user.preferences.cardsPerPage)
+    : pages
 
   /* ---------------- Loading ---------------- */
   if (loading) {
@@ -80,7 +88,7 @@ function HomePage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="w-full max-w-[1600px] mx-auto">
       {/* ---------------- Header ---------------- */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
@@ -190,7 +198,7 @@ function HomePage() {
               : "space-y-4"
           }
         >
-          {pages.map((page) => (
+          {displayedPages.map((page) => (
             <PageCard key={page._id} page={page} />
           ))}
         </div>

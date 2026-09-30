@@ -11,6 +11,7 @@ import {
   LogOut,
   LogIn,
   Film,
+  Settings,
 } from "lucide-react"
 import { useApp } from "../../context/AppContext"
 import { useAuth } from "../../context/AuthContext"
@@ -28,12 +29,12 @@ function Sidebar({ isCollapsed, onToggle, onClose }) {
 
   return (
     <aside
-      className={`h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden transition-all duration-300 ${
+      className={`h-full bg-slate-50 dark:bg-[#0a0a0a] border-r border-slate-200/60 dark:border-white/10 flex flex-col overflow-hidden transition-all duration-300 ${
         isCollapsed ? "w-20" : "w-72"
       }`}
     >
       {/* Logo */}
-      <div className="p-5 border-b border-slate-200 dark:border-slate-800">
+      <div className="p-5 border-b border-slate-200/60 dark:border-white/10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">
@@ -70,6 +71,7 @@ function Sidebar({ isCollapsed, onToggle, onClose }) {
             <NavLink
               key={item.to}
               to={item.to}
+              onClick={onClose}
               className={({ isActive }) =>
                 `flex items-center ${
                   isCollapsed ? "justify-center" : "gap-3"
@@ -98,6 +100,7 @@ function Sidebar({ isCollapsed, onToggle, onClose }) {
               <NavLink
                 key={page._id}
                 to={`/page/${page._id}`}
+                onClick={onClose}
                 className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm hover:bg-slate-100 dark:hover:bg-slate-800"
               >
                 <span>{page.icon}</span>
@@ -111,18 +114,29 @@ function Sidebar({ isCollapsed, onToggle, onClose }) {
       {/* Create */}
       <div className="p-4 border-t border-slate-200 dark:border-slate-800 space-y-2">
         {user && (
-          <NavLink
-            to="/new"
-            className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-medium"
-          >
-            <Plus className="w-5 h-5" />
-            {!isCollapsed && "New Page"}
-          </NavLink>
+          <>
+            <NavLink
+              to="/new"
+              onClick={onClose}
+              className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-medium"
+            >
+              <Plus className="w-5 h-5" />
+              {!isCollapsed && "New Page"}
+            </NavLink>
+            <NavLink
+              to="/settings"
+              onClick={onClose}
+              className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-xl font-medium transition-colors"
+            >
+              <Settings className="w-5 h-5" />
+              {!isCollapsed && "Settings"}
+            </NavLink>
+          </>
         )}
         
         {user ? (
           <button
-            onClick={logout}
+            onClick={() => { logout(); onClose(); }}
             className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 rounded-xl font-medium transition-colors"
           >
             <LogOut className="w-5 h-5" />
@@ -132,6 +146,7 @@ function Sidebar({ isCollapsed, onToggle, onClose }) {
           <div className="space-y-2">
             <NavLink
               to="/login"
+              onClick={onClose}
               className="flex items-center justify-center gap-2 w-full px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-slate-50 dark:hover:bg-slate-800"
             >
               <LogIn className="w-5 h-5" />

@@ -152,12 +152,14 @@ function PageEditor() {
     setBlocks(blocks.filter((_, i) => i !== index))
   }
 
-  const typeOptions = [
-    { value: "concept", label: "Concept" },
-    { value: "setup", label: "Setup" },
-    { value: "project", label: "Project" },
-    { value: "custom", label: "Custom" },
-  ]
+  const typeOptions = user?.preferences?.customCategories?.length 
+    ? user.preferences.customCategories.map(cat => ({ value: cat, label: cat.charAt(0).toUpperCase() + cat.slice(1) }))
+    : [
+        { value: "concept", label: "Concept" },
+        { value: "setup", label: "Setup" },
+        { value: "project", label: "Project" },
+        { value: "custom", label: "Custom" },
+      ]
 
   const iconOptions = [
     "📄",
@@ -262,7 +264,7 @@ function PageEditor() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="w-full max-w-screen-xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <button
