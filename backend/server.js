@@ -11,6 +11,7 @@ import searchRoutes from "./routes/search.js"
 import assetRoutes from "./routes/assets.js"
 import mediaRoutes from "./routes/media.js"
 import mediaConfigRoutes from "./routes/mediaConfig.js"
+import providerRoutes from "./routes/providers.js"
 import authRoutes from "./routes/auth.js"
 
 /* ----------------------------------------
@@ -86,6 +87,7 @@ app.use("/api/search", searchRoutes)
 app.use("/api/assets", assetRoutes)
 app.use("/api/media", mediaRoutes)
 app.use("/api/media-config", mediaConfigRoutes)
+app.use("/api/providers", providerRoutes)
 app.use("/api/auth", authRoutes)
 
 /* ----------------------------------------

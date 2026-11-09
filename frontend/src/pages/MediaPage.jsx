@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { useSearchParams } from "react-router-dom"
 import { Plus, Film, Book, MonitorPlay, ExternalLink, Edit, Trash2, Play, Settings, LayoutGrid, List, BarChart3, FileText, ChevronDown, AlertTriangle, X, Filter, CheckSquare, Square, Download } from "lucide-react"
 import api from "../services/api"
 import { useAuth } from "../context/AuthContext"
@@ -16,6 +17,9 @@ import { toast, ToastContainer } from "../components/ui/Toast"
 
 export default function MediaPage() {
   const { user } = useAuth()
+  const [searchParams] = useSearchParams()
+  const providerParam = searchParams.get("provider")
+
   const [media, setMedia] = useState([])
   const [filteredMedia, setFilteredMedia] = useState([])
   const [config, setConfig] = useState(null)
@@ -37,7 +41,9 @@ export default function MediaPage() {
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedItems, setSelectedItems] = useState(new Set())
   
-  const [filters, setFilters] = useState({})
+  const [filters, setFilters] = useState({
+    provider: providerParam || "all"
+  })
   
   // Confirm dialog state
   const [confirmDialog, setConfirmDialog] = useState({
@@ -53,6 +59,7 @@ export default function MediaPage() {
   // Extract all unique genres and tags from media
   const allGenres = [...new Set(media.flatMap(m => m.genres || []))].sort()
   const allTags = [...new Set(media.flatMap(m => m.tags || []))].sort()
+  const allProviders = [...new Set(media.map(m => m.provider).filter(Boolean))].sort()
 
   // Calculate active filter count
   const activeFilterCount = Object.entries(filters).filter(([key, value]) => {
@@ -120,6 +127,14 @@ export default function MediaPage() {
     
     if (filters.status && filters.status !== "all") {
       result = result.filter(m => m.status === filters.status)
+    }
+
+    if (filters.provider && filters.provider !== "all") {
+      result = result.filter(m => {
+        if (m.provider && m.provider === filters.provider) return true
+        if (!m.provider && m.link && m.link.toLowerCase().includes(filters.provider.toLowerCase().replace(" scans", ""))) return true
+        return false
+      })
     }
     
     if (filters.favorite) {
@@ -697,6 +712,8 @@ export default function MediaPage() {
                 config={config}
                 allGenres={allGenres}
                 allTags={allTags}
+                allProviders={allProviders}
+                initialFilters={filters}
               />
             </div>
           )}

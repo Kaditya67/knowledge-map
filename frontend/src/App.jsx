@@ -9,7 +9,9 @@ import PageEditor from "./pages/PageEditor"
 import TagsPage from "./pages/TagsPage"
 import SearchPage from "./pages/SearchPage"
 import MediaPage from "./pages/MediaPage"
+import ProvidersPage from "./pages/ProvidersPage"
 import LoginPage from "./pages/LoginPage"
+import RegisterPage from "./pages/RegisterPage"
 import SettingsPage from "./pages/SettingsPage"
 
 function App() {
@@ -21,11 +23,13 @@ function App() {
             <Layout>
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
                 <Route path="/" element={<HomePage />} />
                 <Route path="/page/:id" element={<PageView />} />
                 <Route path="/page/:id/edit" element={<PageEditor />} />
                 <Route path="/new" element={<PageEditor />} />
                 <Route path="/tags" element={<TagsPage />} />
+                <Route path="/providers" element={<ProvidersPage />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/media" element={<MediaPage />} />
                 <Route path="/settings" element={<SettingsPage />} />

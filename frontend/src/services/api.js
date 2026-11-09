@@ -30,6 +30,7 @@ const api = {
     const params = new URLSearchParams()
     if (filters.type && filters.type !== "all") params.append("type", filters.type)
     if (filters.status && filters.status !== "all") params.append("status", filters.status)
+    if (filters.provider && filters.provider !== "all") params.append("provider", filters.provider)
     if (filters.sort) params.append("sort", filters.sort)
     const response = await client.get(`/media?${params}`)
     return response.data
@@ -67,6 +68,28 @@ const api = {
   },
   updateMediaConfig: async (data) => {
     const response = await client.put("/media-config", data)
+    return response.data
+  },
+
+  // Providers
+  getProviders: async () => {
+    const response = await client.get("/providers")
+    return response.data
+  },
+  getProviderStats: async () => {
+    const response = await client.get("/providers/stats")
+    return response.data
+  },
+  createProvider: async (data) => {
+    const response = await client.post("/providers", data)
+    return response.data
+  },
+  updateProvider: async (id, data) => {
+    const response = await client.put(`/providers/${id}`, data)
+    return response.data
+  },
+  deleteProvider: async (id) => {
+    const response = await client.delete(`/providers/${id}`)
     return response.data
   },
 

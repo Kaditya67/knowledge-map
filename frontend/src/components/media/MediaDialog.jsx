@@ -9,6 +9,7 @@ export default function MediaDialog({ isOpen, onClose, onSave, initialData, conf
     title: "",
     type: config?.customTypes?.[0]?.name || "Anime",
     link: "",
+    provider: "",
     current: 0,
     total: 0,
     status: config?.customStatuses?.[0]?.value || "planning",
@@ -30,6 +31,7 @@ export default function MediaDialog({ isOpen, onClose, onSave, initialData, conf
     if (initialData) {
       setFormData({
         ...initialData,
+        provider: initialData.provider || "",
         genres: initialData.genres || [],
         tags: initialData.tags || [],
         favorite: initialData.favorite || false,
@@ -40,6 +42,7 @@ export default function MediaDialog({ isOpen, onClose, onSave, initialData, conf
         title: "",
         type: config?.customTypes?.[0]?.name || "Anime",
         link: "",
+        provider: "",
         current: 0,
         total: 0,
         status: config?.customStatuses?.[0]?.value || "planning",
@@ -138,8 +141,31 @@ export default function MediaDialog({ isOpen, onClose, onSave, initialData, conf
               <Input
                 label="Link / URL"
                 value={formData.link}
-                onChange={e => setFormData({ ...formData, link: e.target.value })}
+                onChange={e => {
+                  const newLink = e.target.value
+                  const updates = { link: newLink }
+                  // Auto deduce provider if empty
+                  if (!formData.provider) {
+                    const l = newLink.toLowerCase()
+                    if (l.includes("asura")) updates.provider = "Asura Scans"
+                    else if (l.includes("thunder")) updates.provider = "Thunder Scans"
+                    else if (l.includes("mangapark")) updates.provider = "MangaPark"
+                    else if (l.includes("webtoon")) updates.provider = "Webtoons"
+                    else if (l.includes("toongod")) updates.provider = "ToonGod"
+                    else if (l.includes("reaper")) updates.provider = "Reaper Scans"
+                    else if (l.includes("crunchyroll")) updates.provider = "Crunchyroll"
+                    else if (l.includes("netflix")) updates.provider = "Netflix"
+                  }
+                  setFormData({ ...formData, ...updates })
+                }}
                 placeholder="https://..."
+              />
+
+              <Input
+                label="Provider / Source (e.g. Asura Scans, MangaPark)"
+                value={formData.provider}
+                onChange={e => setFormData({ ...formData, provider: e.target.value })}
+                placeholder="Asura Scans, MangaPark, Webtoons..."
               />
 
               <Input

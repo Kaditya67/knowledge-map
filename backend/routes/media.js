@@ -7,12 +7,13 @@ const router = express.Router()
 // Get all media (filtered by owner if needed later, but global for now as per app style)
 router.get("/", async (req, res) => {
   try {
-    const { type, status, sort, search, genres, tags, favorite, minRating, maxRating } = req.query
+    const { type, status, sort, search, genres, tags, provider, favorite, minRating, maxRating } = req.query
     const query = {}
     
     // Existing filters
     if (type && type !== "all") query.type = type
     if (status && status !== "all") query.status = status
+    if (provider && provider !== "all") query.provider = provider
     
     // Search filter (title or notes)
     if (search) {

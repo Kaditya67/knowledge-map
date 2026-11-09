@@ -11,6 +11,7 @@ import {
   LogOut,
   LogIn,
   Film,
+  Globe,
   Settings,
 } from "lucide-react"
 import { useApp } from "../../context/AppContext"
@@ -24,6 +25,7 @@ function Sidebar({ isCollapsed, onToggle, onClose }) {
   const navItems = [
     { to: "/", icon: Home, label: "Home" },
     { to: "/tags", icon: Tag, label: "Tags" },
+    { to: "/providers", icon: Globe, label: "Providers" },
     { to: "/media", icon: Film, label: "Media" },
   ]
 

@@ -41,6 +41,11 @@ export default function MediaCard({ item, config, onEdit, onDelete, onIncrement,
           
           <div className="flex items-center gap-2 mb-2 flex-wrap">
             <Badge color={statusObj?.color || "#94a3b8"}>{statusObj?.label || item.status}</Badge>
+            {item.provider && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/50">
+                {item.provider}
+              </span>
+            )}
             {item.rating && <span className="text-xs font-bold text-amber-500">★ {item.rating}</span>}
             {item.genres?.slice(0, 2).map(genre => (
               <span key={genre} className="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full">
@@ -153,6 +158,11 @@ export default function MediaCard({ item, config, onEdit, onDelete, onIncrement,
         
         <div className="flex items-center gap-1.5 mb-2 flex-wrap">
           <Badge color={statusObj?.color || "#94a3b8"}>{statusObj?.label || item.status}</Badge>
+          {item.provider && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/50">
+              {item.provider}
+            </span>
+          )}
           {item.rating && <span className="text-[10px] font-bold text-amber-500">★ {item.rating}</span>}
         </div>
         

@@ -8,12 +8,14 @@ export default function MediaFilters({
   config, 
   allGenres = [], 
   allTags = [],
+  allProviders = [],
   initialFilters = {}
 }) {
   const [isAdvancedExpanded, setIsAdvancedExpanded] = useState(false)
   const [filters, setFilters] = useState({
     search: "",
     status: "all",
+    provider: "all",
     minRating: "",
     maxRating: "",
     genres: [],
@@ -45,6 +47,7 @@ export default function MediaFilters({
     setFilters({
       search: "",
       status: "all",
+      provider: "all",
       minRating: "",
       maxRating: "",
       genres: [],
@@ -65,6 +68,11 @@ export default function MediaFilters({
   const statusOptions = [
     { value: "all", label: "All Statuses" },
     ...(config?.customStatuses?.map(s => ({ value: s.value, label: s.label })) || [])
+  ]
+
+  const providerOptions = [
+    { value: "all", label: "All Providers" },
+    ...allProviders.map(p => ({ value: p, label: p }))
   ]
 
   const genreOptions = allGenres.map(g => ({ value: g, label: g }))
@@ -111,12 +119,19 @@ export default function MediaFilters({
       {isAdvancedExpanded && (
         <div className="px-4 pb-4 space-y-4 pt-4 animate-fade-in">
           {/* Status & Favorite */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Select
               label="Status"
               value={filters.status}
               onChange={(e) => handleChange("status", e.target.value)}
               options={statusOptions}
+            />
+
+            <Select
+              label="Provider / Source"
+              value={filters.provider}
+              onChange={(e) => handleChange("provider", e.target.value)}
+              options={providerOptions}
             />
             
             <div className="space-y-2">

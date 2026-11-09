@@ -16,6 +16,11 @@ const mediaSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    provider: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     current: {
       type: Number,
       default: 0,
