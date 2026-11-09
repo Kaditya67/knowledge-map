@@ -838,6 +838,7 @@ export default function MediaPage() {
         onSave={handleSave}
         initialData={editingItem}
         config={config} 
+        allProviders={allProviders}
       />
 
       <SectionDialog 
