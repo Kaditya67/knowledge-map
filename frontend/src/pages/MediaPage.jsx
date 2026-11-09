@@ -41,6 +41,8 @@ export default function MediaPage() {
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedItems, setSelectedItems] = useState(new Set())
   const [updatingIds, setUpdatingIds] = useState(new Set()) // Tracks which single card is currently updating/locked
+  const [retryCount, setRetryCount] = useState(0)
+  const [isRetrying, setIsRetrying] = useState(false)
   
   const [filters, setFilters] = useState({
     provider: providerParam || "all"
@@ -73,15 +75,29 @@ export default function MediaPage() {
   }).length
 
 
-  const fetchData = async () => {
+  const fetchData = async (currentAttempt = 0) => {
     try {
-      setLoading(true)
+      if (currentAttempt === 0) setLoading(true)
+      setIsRetrying(currentAttempt > 0)
+      setRetryCount(currentAttempt)
+
       const [mediaData, configData] = await Promise.all([
         api.getMedia({ sort }),
         api.getMediaConfig()
       ])
-      setMedia(mediaData)
+
+      // If response is empty and we haven't exhausted 3 retries, retry after 5s (covers server cold start)
+      if ((!mediaData || mediaData.length === 0) && currentAttempt < 3) {
+        setTimeout(() => {
+          fetchData(currentAttempt + 1)
+        }, 5000)
+        return
+      }
+
+      setMedia(mediaData || [])
       setConfig(configData)
+      setIsRetrying(false)
+      setRetryCount(0)
       
       if (!activeSection && configData?.customTypes?.length > 0) {
         // Set 'all' as default so the user sees everything immediately
@@ -89,8 +105,16 @@ export default function MediaPage() {
       }
     } catch (error) {
       console.error("Failed to fetch data", error)
+      if (currentAttempt < 3) {
+        setIsRetrying(true)
+        setTimeout(() => {
+          fetchData(currentAttempt + 1)
+        }, 5000)
+      } else {
+        setIsRetrying(false)
+      }
     } finally {
-      setLoading(false)
+      if (currentAttempt === 0) setLoading(false)
     }
   }
 
@@ -855,15 +879,28 @@ export default function MediaPage() {
                   <Film className="w-16 h-16 mb-4 opacity-20" />
                   <p>Select a collection</p>
                 </div>
+              ) : isRetrying ? (
+                <div className="flex flex-col items-center justify-center h-64 text-slate-400 gap-3">
+                  <div className="w-8 h-8 border-3 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                    Connecting to server... Attempt {retryCount} of 3 (retrying in 5s)
+                  </p>
+                  <p className="text-xs text-slate-400">Waking up database container if sleeping</p>
+                </div>
               ) : filteredMedia.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-slate-400">
                   <p className="mb-4">No items found</p>
-                  {user && (
-                    <Button variant="ghost" onClick={() => { setEditingItem({ type: activeSection }); setShowDialog(true) }}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add First Item
+                  <div className="flex gap-2">
+                    <Button variant="secondary" size="sm" onClick={() => fetchData(1)}>
+                      Check Again
                     </Button>
-                  )}
+                    {user && (
+                      <Button variant="ghost" size="sm" onClick={() => { setEditingItem({ type: activeSection }); setShowDialog(true) }}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add First Item
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <div className={viewLayout === "grid" 
