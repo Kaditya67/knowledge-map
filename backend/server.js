@@ -43,15 +43,28 @@ const app = express()
    MIDDLEWARE
 ----------------------------------------- */
 const allowedOrigins = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(",").map(origin => origin.trim())
+  ? process.env.CORS_ORIGIN.split(",").map(origin => origin.trim().replace(/\/$/, ""))
   : []
 
 app.use(
   cors({
     origin: (origin, callback) => { 
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
       if (!origin) return callback(null, true)
 
-      if (allowedOrigins.includes(origin)) {
+      const cleanOrigin = origin.replace(/\/$/, "")
+
+      // Allow if explicitly listed in CORS_ORIGIN
+      if (allowedOrigins.length === 0 || allowedOrigins.includes(cleanOrigin) || allowedOrigins.includes("*")) {
+        return callback(null, true)
+      }
+
+      // Allow any Vercel preview or production deployment under knowledge-map or vercel.app
+      if (
+        cleanOrigin.endsWith(".vercel.app") ||
+        cleanOrigin.includes("localhost") ||
+        cleanOrigin.includes("127.0.0.1")
+      ) {
         return callback(null, true)
       }
 
@@ -60,6 +73,8 @@ app.use(
       )
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
   })
 )
 
