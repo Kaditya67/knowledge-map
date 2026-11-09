@@ -40,6 +40,7 @@ export default function MediaPage() {
   // Selection mode for Smart Edit
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedItems, setSelectedItems] = useState(new Set())
+  const [updatingIds, setUpdatingIds] = useState(new Set()) // Tracks which single card is currently updating/locked
   
   const [filters, setFilters] = useState({
     provider: providerParam || "all"
@@ -222,16 +223,42 @@ export default function MediaPage() {
   const handleSave = async (data) => {
     try {
       if (editingItem && editingItem._id) {
-        await api.updateMedia(editingItem._id, data)
+        const targetId = editingItem._id
+        // Lock only this card visually
+        setUpdatingIds(prev => new Set(prev).add(targetId))
+        setShowDialog(false)
+        setEditingItem(null)
+
+        // Optimistically update local state silently (NO whole-page refresh)
+        setMedia(prev => prev.map(m => m._id === targetId ? { ...m, ...data } : m))
+
+        const updated = await api.updateMedia(targetId, data)
+
+        // Sync with exact server response and release lock
+        setMedia(prev => prev.map(m => m._id === targetId ? updated : m))
+        setUpdatingIds(prev => {
+          const next = new Set(prev)
+          next.delete(targetId)
+          return next
+        })
+        toast.success("Updated successfully")
       } else {
-        await api.createMedia(data)
+        const created = await api.createMedia(data)
+        setMedia(prev => [created, ...prev])
+        setShowDialog(false)
+        setEditingItem(null)
+        toast.success("Item created successfully")
       }
-      setShowDialog(false)
-      setEditingItem(null)
-      fetchMedia()
-      toast.success(editingItem ? "Item updated successfully" : "Item created successfully")
     } catch (error) {
+      console.error(error)
       toast.error("Failed to save media")
+      if (editingItem?._id) {
+        setUpdatingIds(prev => {
+          const next = new Set(prev)
+          next.delete(editingItem._id)
+          return next
+        })
+      }
     }
   }
 
@@ -242,17 +269,27 @@ export default function MediaPage() {
       message: `Are you sure you want to delete "${item.title}"?`,
       onConfirm: async () => {
         try {
-          await api.deleteMedia(item._id)
-          fetchMedia()
+          const targetId = item._id
+          setUpdatingIds(prev => new Set(prev).add(targetId))
+          // Optimistic local deletion
+          setMedia(prev => prev.filter(m => m._id !== targetId))
+          await api.deleteMedia(targetId)
+          setUpdatingIds(prev => {
+            const next = new Set(prev)
+            next.delete(targetId)
+            return next
+          })
           toast.success("Item deleted successfully")
         } catch (error) {
           toast.error("Failed to delete item")
+          fetchMedia()
         }
       }
     })
   }
 
   const handleIncrement = async (item) => {
+    const targetId = item._id
     try {
       const next = (item.current || 0) + 1
       const updates = { current: next }
@@ -261,21 +298,44 @@ export default function MediaPage() {
       } else if (item.status === "planning") {
         updates.status = "in_progress"
       }
-      await api.updateMedia(item._id, updates)
-      fetchMedia()
+
+      // Lock single card and optimistically update silently
+      setUpdatingIds(prev => new Set(prev).add(targetId))
+      setMedia(prev => prev.map(m => m._id === targetId ? { ...m, ...updates } : m))
+
+      const updated = await api.updateMedia(targetId, updates)
+      setMedia(prev => prev.map(m => m._id === targetId ? updated : m))
     } catch (error) {
       console.error("Failed to update progress", error)
       toast.error("Failed to update progress")
+      fetchMedia()
+    } finally {
+      setUpdatingIds(prev => {
+        const next = new Set(prev)
+        next.delete(targetId)
+        return next
+      })
     }
   }
 
   const handleToggleFavorite = async (item) => {
+    const targetId = item._id
     try {
-      await api.updateMedia(item._id, { favorite: !item.favorite })
-      fetchMedia()
+      const newFav = !item.favorite
+      setUpdatingIds(prev => new Set(prev).add(targetId))
+      setMedia(prev => prev.map(m => m._id === targetId ? { ...m, favorite: newFav } : m))
+
+      await api.updateMedia(targetId, { favorite: newFav })
     } catch (error) {
       console.error("Failed to toggle favorite", error)
       toast.error("Failed to toggle favorite")
+      fetchMedia()
+    } finally {
+      setUpdatingIds(prev => {
+        const next = new Set(prev)
+        next.delete(targetId)
+        return next
+      })
     }
   }
 
@@ -815,6 +875,7 @@ export default function MediaPage() {
                       key={item._id}
                       item={item}
                       config={config}
+                      isUpdating={updatingIds.has(item._id)}
                       onEdit={(item) => { setEditingItem(item); setShowDialog(true) }}
                       onDelete={handleDelete}
                       onIncrement={handleIncrement}

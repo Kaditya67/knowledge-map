@@ -1,8 +1,20 @@
-import { Star, Edit, Trash2, ExternalLink, Play, CheckCircle, CheckSquare, Square } from "lucide-react"
+import { Star, Edit, Trash2, ExternalLink, Play, CheckCircle, CheckSquare, Square, Loader2 } from "lucide-react"
 import Badge from "../ui/Badge"
 import { useAuth } from "../../context/AuthContext"
 
-export default function MediaCard({ item, config, onEdit, onDelete, onIncrement, onToggleFavorite, viewMode = "grid", selectionMode = false, isSelected = false, onSelect }) {
+export default function MediaCard({
+  item,
+  config,
+  onEdit,
+  onDelete,
+  onIncrement,
+  onToggleFavorite,
+  viewMode = "grid",
+  selectionMode = false,
+  isSelected = false,
+  onSelect,
+  isUpdating = false
+}) {
   const { user } = useAuth()
   const progressPercent = item.total > 0 ? Math.min((item.current / item.total) * 100, 100) : 0
   const typeConfig = config?.customTypes?.find(t => t.name === item.type) || { unit: "Ep" }
@@ -10,7 +22,14 @@ export default function MediaCard({ item, config, onEdit, onDelete, onIncrement,
 
   if (viewMode === "list") {
     return (
-      <div className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-4 hover:shadow-lg transition-all duration-300 flex items-center gap-4 relative">
+      <div className={`group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-4 hover:shadow-lg transition-all duration-300 flex items-center gap-4 relative ${
+        isUpdating ? "opacity-60 pointer-events-none ring-2 ring-indigo-500/50" : ""
+      }`}>
+        {isUpdating && (
+          <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 backdrop-blur-[1px] flex items-center justify-center rounded-xl z-20">
+            <Loader2 className="w-5 h-5 text-indigo-600 animate-spin" />
+          </div>
+        )}
         {/* Selection Checkbox */}
         {selectionMode && (
           <button
@@ -216,6 +235,16 @@ export default function MediaCard({ item, config, onEdit, onDelete, onIncrement,
     </>
   );
 
+  const cardWrapperClass = `group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative ${
+    isUpdating ? "opacity-60 pointer-events-none ring-2 ring-indigo-500/50" : ""
+  }`
+
+  const updateOverlay = isUpdating && (
+    <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 backdrop-blur-[1px] flex items-center justify-center rounded-2xl z-30">
+      <Loader2 className="w-6 h-6 text-indigo-600 animate-spin" />
+    </div>
+  )
+
   // Render as link if item has a link, otherwise as div
   if (item.link) {
     return (
@@ -223,15 +252,17 @@ export default function MediaCard({ item, config, onEdit, onDelete, onIncrement,
         href={item.link} 
         target="_blank" 
         rel="noopener noreferrer"
-        className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 block relative"
+        className={`${cardWrapperClass} block`}
       >
+        {updateOverlay}
         {cardContent}
       </a>
     );
   }
 
   return (
-    <div className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative">
+    <div className={cardWrapperClass}>
+      {updateOverlay}
       {cardContent}
     </div>
   );
