@@ -10,8 +10,8 @@ import TagsPage from "./pages/TagsPage"
 import SearchPage from "./pages/SearchPage"
 import MediaPage from "./pages/MediaPage"
 import ProvidersPage from "./pages/ProvidersPage"
+import ArticlesPage from "./pages/ArticlesPage"
 import LoginPage from "./pages/LoginPage"
-import RegisterPage from "./pages/RegisterPage"
 import SettingsPage from "./pages/SettingsPage"
 
 function App() {
@@ -28,6 +28,7 @@ function App() {
                 <Route path="/page/:id/edit" element={<PageEditor />} />
                 <Route path="/new" element={<PageEditor />} />
                 <Route path="/tags" element={<TagsPage />} />
+                <Route path="/articles" element={<ArticlesPage />} />
                 <Route path="/providers" element={<ProvidersPage />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/media" element={<MediaPage />} />
