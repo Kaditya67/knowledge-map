@@ -168,19 +168,6 @@ const LoginPage = () => {
                 Fill Demo Credentials (admin@example.com)
               </button>
             </div>
-
-            {/* Link to Register */}
-            <div className="mt-4 text-center">
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                Don't have an account?{" "}
-                <Link
-                  to="/register"
-                  className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
-                >
-                  Create one now
-                </Link>
-              </p>
-            </div>
           </div>
 
           <p className="mt-6 text-center text-xs text-slate-400 dark:text-slate-500">
