@@ -1,6 +1,7 @@
 import express from "express"
 import Media from "../models/Media.js"
 import { protect } from "../middleware/auth.js"
+import { extractProviderFromUrl } from "./providers.js"
 
 const router = express.Router()
 
@@ -136,7 +137,12 @@ router.put("/batch", protect, async (req, res) => {
 // Create media
 router.post("/", protect, async (req, res) => {
   try {
-    const media = new Media(req.body)
+    const data = { ...req.body }
+    // Auto-detect provider from link if not provided
+    if ((!data.provider || !data.provider.trim()) && data.link) {
+      data.provider = extractProviderFromUrl(data.link) || ""
+    }
+    const media = new Media(data)
     const savedMedia = await media.save()
     res.status(201).json(savedMedia)
   } catch (error) {
@@ -147,7 +153,12 @@ router.post("/", protect, async (req, res) => {
 // Update media
 router.put("/:id", protect, async (req, res) => {
   try {
-    const media = await Media.findByIdAndUpdate(req.params.id, req.body, { new: true })
+    const data = { ...req.body }
+    // If link is updated but provider is empty, auto-detect
+    if ((!data.provider || !data.provider.trim()) && data.link) {
+      data.provider = extractProviderFromUrl(data.link) || ""
+    }
+    const media = await Media.findByIdAndUpdate(req.params.id, data, { new: true })
     if (!media) return res.status(404).json({ error: "Media not found" })
     res.json(media)
   } catch (error) {
