@@ -16,14 +16,14 @@ function PageEditor() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { createPage, updatePage, tags } = useApp()
-  const { user, loading: authLoading } = useAuth()
+  const { user, loading: authLoading, openAuthModal } = useAuth()
   const isNew = !id
 
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate("/login")
+      openAuthModal("login", () => {})
     }
-  }, [user, authLoading, navigate])
+  }, [user, authLoading])
 
   const [page, setPage] = useState({
     title: "",

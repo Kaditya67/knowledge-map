@@ -83,9 +83,8 @@ export default function MediaPage() {
       setConfig(configData)
       
       if (!activeSection && configData?.customTypes?.length > 0) {
-        // Prefer 'Manhwa' as default, otherwise use first type
-        const manhwaType = configData.customTypes.find(t => t.name === 'Manhwa')
-        setActiveSection(manhwaType ? manhwaType.name : configData.customTypes[0].name)
+        // Set 'all' as default so the user sees everything immediately
+        setActiveSection("all")
       }
     } catch (error) {
       console.error("Failed to fetch data", error)
@@ -115,7 +114,7 @@ export default function MediaPage() {
 
   // Apply filters locally
   useEffect(() => {
-    let result = media.filter(m => m.type === activeSection)
+    let result = activeSection === "all" ? media : media.filter(m => m.type === activeSection)
     
     if (filters.search) {
       const searchLower = filters.search.toLowerCase()
@@ -473,10 +472,13 @@ export default function MediaPage() {
           {viewMode === "library" && customTypes.length > 0 && (
             <div className="relative">
               <select
-                value={activeSection || ""}
+                value={activeSection || "all"}
                 onChange={(e) => setActiveSection(e.target.value)}
                 className="appearance-none pl-3 pr-8 py-1.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-900 dark:text-white hover:border-indigo-500 dark:hover:border-indigo-400 focus:border-indigo-500 dark:focus:border-indigo-400 outline-none transition-colors cursor-pointer"
               >
+                <option value="all">
+                  All Media ({media.length})
+                </option>
                 {customTypes.map(type => (
                   <option key={type.name} value={type.name}>
                     {type.name} ({media.filter(m => m.type === type.name).length})
@@ -723,10 +725,20 @@ export default function MediaPage() {
             {/* Toolbar */}
             <div className="p-3 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-white dark:bg-slate-800 z-10 shrink-0">
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-slate-900 dark:text-white">{activeSection}</h2>
+                <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                  {activeSection === "all" ? "All Media" : activeSection}
+                </h2>
                 <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded-md text-[10px] font-semibold text-slate-500">
                   {filteredMedia.length} {filteredMedia.length === 1 ? 'item' : 'items'}
                 </span>
+                {activeFilterCount > 0 && (
+                  <button
+                    onClick={() => setFilters({ provider: "all" })}
+                    className="text-[11px] text-indigo-500 hover:underline flex items-center gap-1"
+                  >
+                    Clear active filters
+                  </button>
+                )}
               </div>
 
               <div className="flex gap-2 items-center flex-wrap">

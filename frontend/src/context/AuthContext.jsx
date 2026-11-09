@@ -6,6 +6,26 @@ const AuthContext = createContext()
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+  const [authModalTab, setAuthModalTab] = useState("login")
+  const [onAuthSuccessCallback, setOnAuthSuccessCallback] = useState(null)
+
+  const openAuthModal = (tab = "login", onSuccess = null) => {
+    setAuthModalTab(tab)
+    setOnAuthSuccessCallback(() => onSuccess)
+    setIsAuthModalOpen(true)
+  }
+
+  const closeAuthModal = () => {
+    setIsAuthModalOpen(false)
+    setOnAuthSuccessCallback(null)
+  }
+
+  const handleAuthSuccess = () => {
+    if (onAuthSuccessCallback) {
+      onAuthSuccessCallback()
+    }
+  }
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -68,7 +88,21 @@ export const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, updatePreferences, loading }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        register,
+        logout,
+        updatePreferences,
+        loading,
+        isAuthModalOpen,
+        authModalTab,
+        openAuthModal,
+        closeAuthModal,
+        handleAuthSuccess,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )

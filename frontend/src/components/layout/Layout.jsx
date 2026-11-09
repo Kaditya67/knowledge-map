@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react"
 import Sidebar from "./Sidebar"
 import Header from "./Header"
+import AuthModal from "../auth/AuthModal"
+import { useAuth } from "../../context/AuthContext"
 
 function Layout({ children }) {
+  const { isAuthModalOpen, authModalTab, closeAuthModal, handleAuthSuccess } = useAuth()
   const [isMobile, setIsMobile] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false) // mobile only
   const [isCollapsed, setIsCollapsed] = useState(true)     // desktop only - collapsed by default
@@ -77,6 +80,14 @@ function Layout({ children }) {
           </div>
         </main>
       </div>
+
+      {/* Global Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={closeAuthModal}
+        initialTab={authModalTab}
+        onAuthSuccess={handleAuthSuccess}
+      />
     </div>
   )
 }

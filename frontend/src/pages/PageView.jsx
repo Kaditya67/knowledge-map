@@ -15,7 +15,7 @@ function PageView() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { toggleFavorite, deletePage } = useApp()
-  const { user } = useAuth()
+  const { user, openAuthModal } = useAuth()
   const [page, setPage] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -99,7 +99,7 @@ function PageView() {
         )}
 
         <div className="flex items-center gap-2">
-          {user && (
+          {user ? (
             <Button variant="ghost" size="sm" onClick={handleFavorite}>
               <Star
                 className={`w-5 h-5 ${
@@ -109,9 +109,18 @@ function PageView() {
                 }`}
               />
             </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => openAuthModal("login", handleFavorite)}
+              title="Sign in to favorite"
+            >
+              <Star className="w-5 h-5 text-slate-400 hover:text-amber-500" />
+            </Button>
           )}
 
-          {user && (
+          {user ? (
             <>
               <Link to={`/page/${id}/edit`}>
                 <Button variant="secondary" size="sm">
@@ -124,6 +133,15 @@ function PageView() {
                 <Trash2 className="w-4 h-4 text-red-500" />
               </Button>
             </>
+          ) : (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => openAuthModal("login", () => navigate(`/page/${id}/edit`))}
+            >
+              <Edit className="w-4 h-4 mr-1.5" />
+              Edit Page
+            </Button>
           )}
         </div>
       </div>
